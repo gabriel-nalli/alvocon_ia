@@ -1,15 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useDados } from '../lib/useDados'
-import {
-  funil,
-  paradosPorEtapa,
-  porTipo,
-  porDia,
-  filtraPorPeriodo,
-  contaEventos,
-} from '../lib/metricas'
-import BarrasHorizontais from '../components/BarrasHorizontais.jsx'
-import GraficoLinha from '../components/GraficoLinha.jsx'
+import { funil, paradosPorEtapa, porTipo, porDia, filtraPorPeriodo } from '../lib/metricas'
+import { Icons } from '../Icons.jsx'
+import { CardSciFi, KpiTile } from '../components/SciFi.jsx'
+import { FunilVis, BarrasHorizontaisBlue, GraficoDonut, GraficoLinhaNeon } from '../components/GraficosSciFi.jsx'
 
 const PERIODOS = [
   { rotulo: '24h', dias: 1 },
@@ -18,128 +12,96 @@ const PERIODOS = [
   { rotulo: 'Tudo', dias: null },
 ]
 
-const CORES_FUNIL = ['var(--f1)', 'var(--f2)', 'var(--f3)', 'var(--f4)', 'var(--f5)', 'var(--f6)']
-const CORES_TIPO = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--ink-3)']
-
-function Tile({ rotulo, valor, apoio }) {
-  return (
-    <div className="card tile">
-      <div className="rotulo">{rotulo}</div>
-      <div className="valor">{valor}</div>
-      {apoio && <div className="apoio">{apoio}</div>}
-    </div>
-  )
+function textoPeriodo(dias) {
+  if (dias == null) return 'Todo o período'
+  const f = (d) => d.toLocaleDateString('pt-BR')
+  const fim = new Date()
+  const inicio = new Date(Date.now() - dias * 24 * 60 * 60 * 1000)
+  return `${f(inicio)} - ${f(fim)}`
 }
 
 export default function VisaoGeral() {
-  const { leads, mensagens, eventos, carregando, erro } = useDados()
+  const { leads, mensagens, carregando, erro } = useDados()
   const [dias, setDias] = useState(30)
 
   const m = useMemo(() => {
     const leadsPeriodo = filtraPorPeriodo(leads, 'criado_em', dias)
-    const qualificadosPeriodo = filtraPorPeriodo(leads, 'qualificado_em', dias)
     const msgsLeadPeriodo = filtraPorPeriodo(
       mensagens.filter((mm) => mm.direcao === 'lead'),
       'criado_em',
       dias,
     )
     const qualificadosEntreNovos = leadsPeriodo.filter((l) => l.status === 'qualificado').length
+
     return {
-      leadsPeriodo,
       totalLeads: leadsPeriodo.length,
-      totalQualificados: qualificadosPeriodo.length,
+      totalQualificados: qualificadosEntreNovos,
       taxa: leadsPeriodo.length ? Math.round((qualificadosEntreNovos / leadsPeriodo.length) * 100) : 0,
       msgsRecebidas: msgsLeadPeriodo.length,
       funil: funil(leadsPeriodo),
       parados: paradosPorEtapa(leadsPeriodo),
       tipos: porTipo(leadsPeriodo),
       porDia: porDia(leads, dias == null ? 30 : Math.min(Math.max(dias, 7), 30)),
-      foraWhitelist: contaEventos(eventos, 'fora_whitelist', dias),
-      pausasHumanas: contaEventos(eventos, 'pausa_humana', dias),
-      bloqueados: contaEventos(eventos, 'bloqueado_pos_handoff', dias),
     }
-  }, [leads, mensagens, eventos, dias])
+  }, [leads, mensagens, dias])
 
-  if (carregando) return <div className="tela-carregando">Carregando dados…</div>
+  if (carregando) {
+    return <div style={{ color: 'var(--texto-secundario)', padding: 40 }}>Acessando banco de dados da IA…</div>
+  }
 
   return (
-    <>
+    <div className="dashboard-container">
       {erro && (
-        <div className="card" style={{ borderColor: 'var(--critico)', marginBottom: 16 }}>
-          Erro ao carregar dados: {erro}
-        </div>
+        <div className="vazio" style={{ color: '#ff6b6b' }}>Erro ao carregar dados: {erro}</div>
       )}
 
-      <div className="filtros" role="toolbar" aria-label="Período">
-        {PERIODOS.map((p) => (
-          <button
-            key={p.rotulo}
-            className={dias === p.dias ? 'ativo' : ''}
-            onClick={() => setDias(p.dias)}
-          >
-            {p.rotulo}
-          </button>
-        ))}
+      {/* Filtros de tempo */}
+      <div className="filters-row">
+        <div className="time-filters">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.rotulo}
+              className={dias === p.dias ? 'ativo' : ''}
+              onClick={() => setDias(p.dias)}
+            >
+              {p.rotulo}
+            </button>
+          ))}
+        </div>
+        <div className="date-picker-mock">
+          <Icons.Calendar /> {textoPeriodo(dias)}
+        </div>
       </div>
 
+      {/* Grid Superior - 4 KPIs */}
       <div className="grid-kpis">
-        <Tile rotulo="Leads novos" valor={m.totalLeads} apoio="entraram pela whitelist" />
-        <Tile rotulo="Qualificados" valor={m.totalQualificados} apoio="handoff completo pra Isa" />
-        <Tile rotulo="Taxa de qualificação" valor={`${m.taxa}%`} apoio="dos leads novos do período" />
-        <Tile rotulo="Msgs de clientes" valor={m.msgsRecebidas} apoio="recebidas pela IA" />
+        <KpiTile titulo="Leads novos" valor={m.totalLeads} subtitulo="entraram pela whitelist" IconeComponent={Icons.Users} />
+        <KpiTile titulo="Qualificados" valor={m.totalQualificados} subtitulo="handoff completo pra Isa" IconeComponent={Icons.Shield} />
+        <KpiTile titulo="Taxa de qualificação" valor={`${m.taxa}%`} subtitulo="dos leads novos do período" IconeComponent={Icons.Target} />
+        <KpiTile titulo="Msgs de clientes" valor={m.msgsRecebidas} subtitulo="recebidas pela IA" IconeComponent={Icons.Chat} />
       </div>
 
-      <div className="grid-2">
-        <div className="card">
-          <h2>Funil de qualificação</h2>
-          {m.totalLeads === 0 ? (
-            <div className="vazio">Nenhum lead no período ainda.</div>
-          ) : (
-            <BarrasHorizontais
-              base={m.funil[0]?.total}
-              itens={m.funil.map((f, i) => ({ rotulo: f.rotulo, total: f.total, cor: CORES_FUNIL[i] }))}
-            />
-          )}
-        </div>
-        <div className="card">
-          <h2>Onde os leads pararam de responder</h2>
-          {m.parados.length === 0 ? (
-            <div className="vazio">Ninguém parado — todos qualificados ou sem leads no período.</div>
-          ) : (
-            <BarrasHorizontais
-              itens={m.parados.map((p) => ({ rotulo: p.rotulo, total: p.total, cor: 'var(--f2)' }))}
-            />
-          )}
-        </div>
+      {/* Grid Meio - Funil e Barras */}
+      <div className="grid-main">
+        <CardSciFi titulo="Funil de qualificação">
+          {m.totalLeads === 0 ? <div className="vazio">Nenhum dado no período.</div> : <FunilVis itens={m.funil} />}
+        </CardSciFi>
+
+        <CardSciFi titulo="Onde os leads pararam de responder">
+          {m.parados.length === 0 ? <div className="vazio">Todos avançaram sem parar.</div> : <BarrasHorizontaisBlue itens={m.parados} />}
+        </CardSciFi>
       </div>
 
-      <div className="grid-2">
-        <div className="card">
-          <h2>Perfil dos leads</h2>
-          {m.totalLeads === 0 ? (
-            <div className="vazio">Nenhum lead no período ainda.</div>
-          ) : (
-            <BarrasHorizontais
-              base={m.totalLeads}
-              itens={m.tipos.map((t, i) => ({ rotulo: t.rotulo, total: t.total, cor: CORES_TIPO[i] }))}
-            />
-          )}
-        </div>
-        <div className="card">
-          <h2>Leads por dia</h2>
-          <GraficoLinha serie={m.porDia} />
-        </div>
-      </div>
+      {/* Grid Inferior - Donut e Linha */}
+      <div className="grid-main">
+        <CardSciFi titulo="Perfil dos leads">
+          {m.totalLeads === 0 ? <div className="vazio">Nenhum dado.</div> : <GraficoDonut itens={m.tipos} total={m.totalLeads} />}
+        </CardSciFi>
 
-      <div className="grid-kpis">
-        <Tile
-          rotulo="Msgs fora da whitelist"
-          valor={m.foraWhitelist}
-          apoio="ignoradas pela IA (outros contatos)"
-        />
-        <Tile rotulo="Pausas por atendimento humano" valor={m.pausasHumanas} apoio="Isa respondeu manualmente" />
-        <Tile rotulo="Bloqueadas pós-handoff" valor={m.bloqueados} apoio="msgs após a qualificação" />
+        <CardSciFi titulo="Leads por dia">
+          <GraficoLinhaNeon serie={m.porDia} />
+        </CardSciFi>
       </div>
-    </>
+    </div>
   )
 }
