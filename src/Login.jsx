@@ -21,7 +21,12 @@ export default function Login() {
   return (
     <div className="login-tela">
       <form className="login-card" onSubmit={entrar}>
-        <h1>Painel Isabela — Alvocon</h1>
+        <img
+          className="logo-login"
+          src="/alvocon-logo.png"
+          alt="Alvocon"
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
         <p>Acesso restrito. Entre com o usuário do painel.</p>
         <input
           type="email"

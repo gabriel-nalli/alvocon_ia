@@ -13,12 +13,12 @@ const ORDEM = {
 }
 
 export const ETAPAS_FUNIL = [
-  { nivel: 0, rotulo: 'Entrou pela whitelist' },
+  { nivel: 0, rotulo: 'Clicou no anúncio' },
   { nivel: 1, rotulo: 'Recebeu a 1ª resposta da IA' },
   { nivel: 2, rotulo: 'Informou o nome' },
   { nivel: 3, rotulo: 'Informou a cidade' },
   { nivel: 4, rotulo: 'Informou o perfil' },
-  { nivel: 5, rotulo: 'Qualificado (handoff)' },
+  { nivel: 5, rotulo: 'Qualificado (pronto pra Isa)' },
 ]
 
 export const ETAPA_PARADO = {
