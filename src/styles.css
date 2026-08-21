@@ -126,6 +126,57 @@ button:not(:disabled) { cursor: pointer; }
   border-color: #ec3a40; box-shadow: 0 0 20px rgba(227,27,35,.25);
 }
 .date-filter { display: flex; align-items: center; gap: 10px; }
+.date-filter.aceso { border-color: var(--red); box-shadow: 0 0 16px rgba(227,27,35,.2); }
+
+/* ---------- Calendário do filtro de período ---------- */
+.filtro-data { position: relative; }
+.calendario {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 40;
+  background: #101215; border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px; box-shadow: 0 24px 48px rgba(0,0,0,.6);
+}
+.cal-navegacao {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 10px; font-size: 12px; color: var(--muted);
+}
+.cal-navegacao button {
+  display: flex; background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px;
+}
+.cal-navegacao button:hover:not(:disabled) { border-color: var(--red); color: #fff; }
+.cal-navegacao button:disabled { opacity: .3; }
+.cal-meses { display: flex; gap: 18px; }
+.cal-mes { width: 210px; }
+.cal-titulo {
+  text-align: center; font-size: 13px; margin-bottom: 8px;
+  text-transform: capitalize; color: #e8e8e8;
+}
+.cal-grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-semana {
+  display: grid; place-items: center; height: 24px;
+  font-size: 11px; color: var(--texto-mutado);
+}
+.cal-dia {
+  height: 28px; border: 0; border-radius: 7px; background: transparent;
+  font-size: 12.5px; color: #dcdcdc;
+}
+.cal-dia:hover:not(:disabled) { background: #24272b; }
+.cal-dia:disabled { opacity: .22; }
+.cal-dia.hoje { box-shadow: inset 0 0 0 1px var(--border); }
+.cal-dia.no-intervalo { background: rgba(227,27,35,.15); border-radius: 0; }
+.cal-dia.ponta {
+  background: linear-gradient(180deg, #c81920, #8d1116);
+  color: #fff; border-radius: 7px;
+}
+.cal-rodape {
+  display: flex; justify-content: space-between; gap: 10px;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--borda-escura);
+}
+.cal-rodape button {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 14px; font-size: 12px; color: #d5d5d5;
+}
+.cal-rodape button:hover { border-color: var(--red); color: #fff; }
 
 .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
 

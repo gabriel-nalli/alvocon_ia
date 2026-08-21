@@ -1,17 +1,11 @@
 import { useMemo, useState } from 'react'
-import { CalendarDays } from 'lucide-react'
 import { useDados } from '../lib/useDados'
-import { funil, paradosPorEtapa, porTipo, porDia, filtraPorPeriodo } from '../lib/metricas'
+import { funil, paradosPorEtapa, porTipo, serieDeLeads, filtraPorIntervalo } from '../lib/metricas'
+import { intervaloDoPreset } from '../lib/periodo'
 import { MetricCard } from '../components/MetricCard.jsx'
 import { Panel } from '../components/Panel.jsx'
+import { FiltroPeriodo } from '../components/FiltroPeriodo.jsx'
 import { Funnel, Dropoff, Profiles, LeadsLine } from '../components/Charts.jsx'
-
-const PERIODOS = [
-  { rotulo: '24h', dias: 1 },
-  { rotulo: '7 dias', dias: 7 },
-  { rotulo: '30 dias', dias: 30 },
-  { rotulo: 'Tudo', dias: null },
-]
 
 const CORES_TIPO = {
   'Cliente final': '#2f80ed',
@@ -20,24 +14,16 @@ const CORES_TIPO = {
   'Não informado': '#8a8a8a',
 }
 
-function textoPeriodo(dias) {
-  if (dias == null) return 'Todo o período'
-  const f = (d) => d.toLocaleDateString('pt-BR')
-  const fim = new Date()
-  const inicio = new Date(Date.now() - dias * 24 * 60 * 60 * 1000)
-  return `${f(inicio)} - ${f(fim)}`
-}
-
 export default function VisaoGeral() {
   const { leads, mensagens, carregando, erro } = useDados()
-  const [dias, setDias] = useState(30)
+  const [intervalo, setIntervalo] = useState(() => intervaloDoPreset(30))
 
   const m = useMemo(() => {
-    const leadsPeriodo = filtraPorPeriodo(leads, 'criado_em', dias)
-    const msgsLeadPeriodo = filtraPorPeriodo(
+    const leadsPeriodo = filtraPorIntervalo(leads, 'criado_em', intervalo)
+    const msgsLeadPeriodo = filtraPorIntervalo(
       mensagens.filter((mm) => mm.direcao === 'lead'),
       'criado_em',
-      dias,
+      intervalo,
     )
     const totalLeads = leadsPeriodo.length
     const qualificadosEntreNovos = leadsPeriodo.filter((l) => l.status === 'qualificado').length
@@ -62,12 +48,12 @@ export default function VisaoGeral() {
         pct: totalLeads ? `${Math.round((t.total / totalLeads) * 100)}%` : '0%',
         color: CORES_TIPO[t.rotulo] ?? '#8a8a8a',
       })),
-      leadsPerDay: porDia(leads, dias == null ? 30 : Math.min(Math.max(dias, 7), 30)).map((d) => ({
+      leadsPerDay: serieDeLeads(leadsPeriodo, intervalo).pontos.map((d) => ({
         day: d.rotulo,
         value: d.leads,
       })),
     }
-  }, [leads, mensagens, dias])
+  }, [leads, mensagens, intervalo])
 
   if (carregando) return <div className="tela-carregando">Acessando banco de dados da IA…</div>
 
@@ -82,20 +68,7 @@ export default function VisaoGeral() {
     <>
       {erro && <div className="vazio" style={{ color: '#ff6b6b' }}>Erro ao carregar dados: {erro}</div>}
 
-      <div className="filters">
-        <div className="range-tabs">
-          {PERIODOS.map((p) => (
-            <button key={p.rotulo} className={dias === p.dias ? 'active' : ''} onClick={() => setDias(p.dias)}>
-              {p.rotulo}
-            </button>
-          ))}
-        </div>
-        <button className="date-filter">
-          <CalendarDays size={17} />
-          {textoPeriodo(dias)}
-          <span>⌄</span>
-        </button>
-      </div>
+      <FiltroPeriodo intervalo={intervalo} onChange={setIntervalo} />
 
       <section className="metrics-grid">
         {metricas.map((item) => <MetricCard key={item.label} {...item} />)}

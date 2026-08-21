@@ -2,6 +2,10 @@
 // A etapa_atual do lead é a pergunta do script que ele tem pendente:
 // inicio -> aguardando_nome -> aguardando_cidade -> aguardando_tipo -> aguardando_metragem -> qualificado
 
+import { inicioDoDia, fimDoDia, somaDias, totalDeDias } from './periodo'
+
+const DIA_MS = 24 * 60 * 60 * 1000
+
 const ORDEM = {
   inicio: 0,
   conversando: 1, // respondeu algo fora do padrão; já interagiu
@@ -35,10 +39,19 @@ export function nivelDoLead(lead) {
   return ORDEM[lead.etapa_atual] ?? 0
 }
 
-export function filtraPorPeriodo(linhas, campo, dias) {
-  if (dias == null) return linhas
-  const corte = Date.now() - dias * 24 * 60 * 60 * 1000
-  return linhas.filter((l) => l[campo] && new Date(l[campo]).getTime() >= corte)
+// Mantém só as linhas cujo `campo` cai dentro do intervalo (bordas incluídas).
+// Linhas sem data ficam de fora de qualquer recorte — não dá pra afirmar que
+// pertencem ao período.
+export function filtraPorIntervalo(linhas, campo, intervalo) {
+  const { inicio, fim } = intervalo ?? {}
+  if (!inicio && !fim) return linhas
+  const de = inicio ? inicio.getTime() : -Infinity
+  const ate = fim ? fim.getTime() : Infinity
+  return linhas.filter((l) => {
+    if (!l[campo]) return false
+    const t = new Date(l[campo]).getTime()
+    return t >= de && t <= ate
+  })
 }
 
 export function funil(leads) {
@@ -75,29 +88,41 @@ export function porTipo(leads) {
   return ordem.map((rotulo) => ({ rotulo, total: grupos[rotulo] }))
 }
 
-export function porDia(leads, dias = 14) {
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0)
-  const serie = []
-  for (let i = dias - 1; i >= 0; i--) {
-    const dia = new Date(hoje.getTime() - i * 24 * 60 * 60 * 1000)
-    const proximo = new Date(dia.getTime() + 24 * 60 * 60 * 1000)
-    const doDia = (campo) => (l) => {
-      if (!l[campo]) return false
-      const t = new Date(l[campo]).getTime()
-      return t >= dia.getTime() && t < proximo.getTime()
-    }
-    serie.push({
-      dia,
-      rotulo: dia.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      leads: leads.filter(doDia('criado_em')).length,
-      qualificados: leads.filter(doDia('qualificado_em')).length,
-    })
-  }
-  return serie
+// "Tudo" não tem borda: o intervalo real vai do lead mais antigo até hoje.
+function intervaloEfetivo(leads, intervalo) {
+  const { inicio, fim } = intervalo ?? {}
+  if (inicio && fim) return { inicio: inicioDoDia(inicio), fim: fimDoDia(fim) }
+  const datas = leads.map((l) => l.criado_em).filter(Boolean).map((d) => new Date(d).getTime())
+  const maisAntigo = datas.length ? new Date(Math.min(...datas)) : new Date()
+  return { inicio: inicioDoDia(maisAntigo), fim: fimDoDia(new Date()) }
 }
 
-export function contaEventos(eventos, nome, dias) {
-  const noPeriodo = filtraPorPeriodo(eventos, 'criado_em', dias)
-  return noPeriodo.filter((e) => e.evento === nome).length
+// Série do gráfico "Leads por dia", sempre cobrindo exatamente o intervalo
+// selecionado. Acima de 62 dias os pontos passam a ser semanais, senão o eixo
+// vira uma tarja ilegível em períodos longos.
+export function serieDeLeads(leads, intervalo) {
+  const { inicio, fim } = intervaloEfetivo(leads, intervalo)
+  const passo = totalDeDias(inicio, fim) > 62 ? 7 : 1
+
+  const pontos = []
+  for (let dia = inicio; dia <= fim; dia = somaDias(dia, passo)) {
+    pontos.push({
+      inicio: dia,
+      rotulo: dia.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      leads: 0,
+    })
+  }
+
+  for (const lead of leads) {
+    if (!lead.criado_em) continue
+    const t = new Date(lead.criado_em)
+    if (t < inicio || t > fim) continue
+    // arredonda porque a diferença entre dois inícios de dia pode não ser um
+    // múltiplo exato de 24h (horário de verão)
+    const diaDoLead = Math.round((inicioDoDia(t) - inicio) / DIA_MS)
+    const ponto = pontos[Math.floor(diaDoLead / passo)]
+    if (ponto) ponto.leads += 1
+  }
+
+  return { pontos, passo }
 }
