@@ -84,7 +84,9 @@ export default function Conversas() {
           >
             <div className="topo">
               <span className="nome">{lead.nome || lead.nome_perfil || lead.telefone}</span>
-              {lead.ultimaMsg && <span className="hora">{fmtHora(lead.ultimaMsg.criado_em)}</span>}
+              {(lead.ultimaMsg?.criado_em || lead.criado_em) && (
+                <span className="hora">{fmtHora(lead.ultimaMsg?.criado_em ?? lead.criado_em)}</span>
+              )}
             </div>
             <div className="sub">
               {lead.status === 'qualificado' ? (
