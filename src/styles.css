@@ -389,3 +389,141 @@ button:not(:disabled) { cursor: pointer; }
   .logo { height: 46px; }
   .conversas { grid-template-columns: 320px 1fr; }
 }
+
+/* ---------- Disparos ---------- */
+.titulo-pagina { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.titulo-pagina .badge-status { vertical-align: middle; margin-left: 10px; }
+.subtitulo-pagina { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+
+.botao-primario, .botao-secundario {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  border-radius: 999px; padding: 10px 18px; font-size: 14px; border: 1px solid transparent;
+}
+.botao-primario { background: linear-gradient(180deg, #c81920, #8d1116); border-color: #ec3a40; color: #fff; }
+.botao-primario:hover:not(:disabled) { box-shadow: 0 0 20px rgba(227,27,35,.3); }
+.botao-primario:disabled { opacity: .4; cursor: not-allowed; }
+.botao-secundario { background: #111315; border-color: var(--border); color: #dedede; }
+.botao-secundario:hover:not(:disabled) { border-color: var(--red); }
+
+.aviso-erro {
+  background: rgba(227,27,35,.1); border: 1px solid #5a171a; color: #ff9b9b;
+  border-radius: 10px; padding: 12px 16px; font-size: 13.5px; margin-bottom: 18px;
+}
+
+.vazio-grande { padding: 48px 24px; text-align: center; color: var(--muted); }
+.vazio-grande .dica { margin-top: 8px; }
+.dica { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.dica code, .descartados code { background: #1c1f22; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+.lista-campanhas { display: flex; flex-direction: column; gap: 12px; }
+.campanha-item { display: flex; align-items: stretch; gap: 16px; padding: 16px 18px; }
+.campanha-corpo { flex: 1; background: transparent; border: 0; text-align: left; padding: 0; display: grid; gap: 10px; }
+.campanha-topo { display: flex; align-items: center; gap: 12px; }
+.campanha-nome { font-size: 15.5px; font-weight: 600; }
+.campanha-numeros { display: flex; gap: 16px; font-size: 12.5px; color: #cfcfcf; flex-wrap: wrap; }
+.txt-muted { color: var(--muted); }
+.txt-erro { color: #ff6b6b; }
+
+.barra-progresso {
+  display: flex; height: 8px; border-radius: 99px; overflow: hidden;
+  background: #24272b; border: 1px solid var(--borda-escura);
+}
+.barra-progresso.vazia { opacity: .4; }
+.barra-progresso .fatia { transition: width .4s ease; }
+.fatia.enviado { background: #18b886; }
+.fatia.erro { background: #e3452f; }
+.fatia.enviando { background: #e59b00; }
+
+.badge-status {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted);
+}
+.badge-status.rodando { background: rgba(229,155,0,.15); border-color: #7a5400; color: #ffc247; }
+.badge-status.concluido { background: rgba(24,184,134,.13); border-color: #14654b; color: #46d6a8; }
+.badge-status.pausado { background: rgba(255,255,255,.06); color: #d5d5d5; }
+.badge-status.cancelado { background: rgba(227,27,35,.12); border-color: #5a171a; color: #ff8f8f; }
+
+.campanha-acoes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.campanha-acoes button {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  background: #16181b; border: 1px solid var(--border); border-radius: 999px;
+  padding: 8px 15px; font-size: 13px; color: #dedede;
+}
+.campanha-acoes button:hover:not(:disabled) { border-color: var(--red); color: #fff; }
+.campanha-acoes button:disabled { opacity: .4; }
+.campanha-acoes button.perigo:hover:not(:disabled) { background: rgba(227,27,35,.14); }
+
+.grid-disparo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.bloco { padding: 20px; display: grid; gap: 12px; align-content: start; }
+.bloco h2 { margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+
+.campo {
+  width: 100%; background: #0d0f11; border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 14px; color: #f0f0f0; font: inherit; font-size: 14px; resize: vertical;
+}
+.campo:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(227,27,35,.12); }
+.linha-campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.linha-campos label { display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); }
+
+.mensagem-editor { border: 1px solid var(--borda-escura); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.mensagem-cabecalho { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+.mensagem-ferramentas { display: flex; align-items: center; gap: 8px; }
+.botao-arquivo {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font-size: 12px;
+}
+.botao-arquivo:hover { border-color: var(--red); color: #fff; }
+button.icone { background: transparent; border: 0; color: var(--muted); display: flex; padding: 4px; }
+button.icone:hover { color: #ff6b6b; }
+.girando { animation: girar 1s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .girando { animation: none; } .barra-progresso .fatia { transition: none; } }
+
+.previa-midia { position: relative; width: fit-content; }
+.previa-midia img { max-height: 130px; border-radius: 8px; display: block; }
+.previa-midia .icone { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.65); border-radius: 99px; }
+
+.area-upload { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.arquivo-nome { font-size: 12.5px; color: #cfcfcf; }
+.colar-lista summary, .descartados summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+.colar-lista summary:hover, .descartados summary:hover { color: #fff; }
+.colar-lista .campo { margin-top: 10px; }
+
+.resumo-contatos { border-top: 1px solid var(--borda-escura); padding-top: 12px; display: grid; gap: 8px; }
+.resumo-linha { font-size: 13.5px; display: flex; gap: 8px; align-items: baseline; }
+.amostra { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--muted); }
+.amostra span { background: #16181b; border: 1px solid var(--borda-escura); border-radius: 99px; padding: 3px 10px; }
+.descartados ul { margin: 8px 0 0; padding-left: 18px; font-size: 12px; color: var(--muted); max-height: 180px; overflow-y: auto; }
+.descartados li { margin-bottom: 4px; }
+
+.rodape-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.kpi { padding: 18px 20px; display: grid; gap: 4px; align-content: start; }
+.kpi-rotulo { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.kpi-valor { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpi-valor.ruim { color: #ff6b6b; }
+.kpi-ajuda { font-size: 12px; color: var(--muted); }
+
+.previa-conversa { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.previa-conversa .bolha { max-width: 100%; white-space: pre-wrap; }
+.bolha-midia { max-width: 100%; border-radius: 8px; margin-bottom: 8px; display: block; }
+
+.tabela-contatos { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; }
+.contato-linha {
+  display: grid; grid-template-columns: 1.2fr 1.1fr auto auto; gap: 12px; align-items: center;
+  padding: 9px 4px; border-bottom: 1px solid var(--borda-escura); font-size: 13px;
+}
+.contato-linha:last-child { border-bottom: 0; }
+.contato-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contato-numero { color: var(--muted); font-variant-numeric: tabular-nums; }
+.contato-quando { color: var(--texto-mutado); font-size: 12px; font-variant-numeric: tabular-nums; }
+.contato-erro { grid-column: 1 / -1; font-size: 11.5px; color: #ff8f8f; }
+.badge-contato { font-size: 11px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); }
+.badge-contato.enviado { background: rgba(24,184,134,.13); border-color: #14654b; color: #46d6a8; }
+.badge-contato.erro { background: rgba(227,27,35,.12); border-color: #5a171a; color: #ff8f8f; }
+.badge-contato.enviando { background: rgba(229,155,0,.15); border-color: #7a5400; color: #ffc247; }
+
+@media (max-width: 1300px) {
+  .grid-disparo { grid-template-columns: 1fr; }
+  .campanha-item { flex-direction: column; }
+}

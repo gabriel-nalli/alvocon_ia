@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Send } from 'lucide-react'
 import { supabase } from '../supabase'
 import { Icons } from '../Icons.jsx'
 
@@ -6,6 +7,8 @@ export function Header() {
   const location = useLocation()
   const navigate = useNavigate()
   const emConversas = location.pathname.startsWith('/conversas')
+  const emDisparos = location.pathname.startsWith('/disparos')
+  const emVisaoGeral = !emConversas && !emDisparos
 
   return (
     <header className="top-header">
@@ -14,11 +17,14 @@ export function Header() {
       </div>
 
       <nav className="nav-tabs">
-        <button className={`nav-tab ${!emConversas ? 'ativo' : ''}`} onClick={() => navigate('/')}>
+        <button className={`nav-tab ${emVisaoGeral ? 'ativo' : ''}`} onClick={() => navigate('/')}>
           <Icons.Speedometer /> Visão geral
         </button>
         <button className={`nav-tab ${emConversas ? 'ativo' : ''}`} onClick={() => navigate('/conversas')}>
           <Icons.Chat /> Conversas
+        </button>
+        <button className={`nav-tab ${emDisparos ? 'ativo' : ''}`} onClick={() => navigate('/disparos')}>
+          <Send size={19} /> Disparos
         </button>
       </nav>
 
