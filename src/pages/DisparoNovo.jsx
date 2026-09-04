@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, Plus, X, Image as IconeImagem, Loader2 } from 'lucide-react'
 import { leContatos, leContatosColados } from '../lib/planilha'
 import { criaCampanha, enviaMidia } from '../lib/disparos'
@@ -12,14 +12,18 @@ const MENSAGENS_INICIAIS = [
 export default function DisparoNovo() {
   const navigate = useNavigate()
   const arquivoRef = useRef(null)
+  // contatos que vieram do funil, já validados: aqui não há planilha pra ler
+  const doPipeline = useLocation().state ?? null
 
-  const [nome, setNome] = useState('')
+  const [nome, setNome] = useState(
+    doPipeline?.nomeSugerido ? `${doPipeline.nomeSugerido} — ${new Date().toLocaleDateString('pt-BR')}` : '',
+  )
   const [mensagens, setMensagens] = useState(MENSAGENS_INICIAIS)
   const [intervaloMin, setIntervaloMin] = useState(120)
   const [intervaloMax, setIntervaloMax] = useState(180)
   const [entreMensagens, setEntreMensagens] = useState(5)
 
-  const [contatos, setContatos] = useState([])
+  const [contatos, setContatos] = useState(doPipeline?.contatos ?? [])
   const [rejeitados, setRejeitados] = useState([])
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [colado, setColado] = useState('')
@@ -104,6 +108,7 @@ export default function DisparoNovo() {
           midia_url: m.midia_url ?? null,
         })),
         contatos,
+        travarIa: Boolean(doPipeline?.travarIa),
         intervalo: {
           min: Number(intervaloMin),
           max: Number(intervaloMax),
@@ -211,6 +216,15 @@ export default function DisparoNovo() {
 
         <div className="card bloco">
           <h2>3 · Contatos</h2>
+          {doPipeline?.vindoDoPipeline && (
+            <div className="aviso-neutro" style={{ margin: 0 }}>
+              <span>
+                <strong>{doPipeline.contatos.length} contatos vieram do funil.</strong> A Isabela
+                fica travada para eles por 48h depois do envio. Se subir uma planilha aqui, ela
+                substitui essa lista.
+              </span>
+            </div>
+          )}
           <div className="area-upload">
             <button className="botao-secundario" onClick={() => arquivoRef.current?.click()}>
               <Upload size={15} /> Escolher planilha (.csv ou .xlsx)

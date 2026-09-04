@@ -46,13 +46,14 @@ export async function enviaMidia(arquivo) {
   return data.publicUrl
 }
 
-export async function criaCampanha({ nome, mensagens, contatos, intervalo }) {
+export async function criaCampanha({ nome, mensagens, contatos, intervalo, travarIa = false }) {
   const { data: campanha, error } = await supabase
     .from('disparo_campanhas')
     .insert({
       nome,
       mensagens,
       status: 'rascunho',
+      travar_ia: travarIa,
       intervalo_min: intervalo.min,
       intervalo_max: intervalo.max,
       intervalo_mensagens: intervalo.entreMensagens,
@@ -67,6 +68,7 @@ export async function criaCampanha({ nome, mensagens, contatos, intervalo }) {
       campanha_id: campanha.id,
       nome: c.nome,
       numero: c.numero,
+      crm_lead_id: c.crm_lead_id ?? null,
     }))
     const { error: erroContatos } = await supabase.from('disparo_contatos').insert(bloco)
     if (erroContatos) {

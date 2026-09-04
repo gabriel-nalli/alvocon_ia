@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search, UserPlus, Tag, X, Check, LayoutGrid, List, CalendarClock } from 'lucide-react'
+import { Search, UserPlus, Tag, X, Check, LayoutGrid, List, CalendarClock, Send } from 'lucide-react'
 import {
   useCrmLeads,
   useHistorico,
@@ -15,8 +15,10 @@ import {
 } from '../lib/crm'
 import { normalizaNumero } from '../lib/planilha'
 import { Kanban } from '../components/Kanban.jsx'
+import { DisparoDoPipeline } from '../components/DisparoDoPipeline.jsx'
+import { ConfirmaEtapa, precisaConfirmar } from '../components/ConfirmaEtapa.jsx'
 
-function Ficha({ lead, onFechar }) {
+function Ficha({ lead, onFechar, onPedirEtapa }) {
   const eventos = useHistorico(lead?.id)
   const [rascunho, setRascunho] = useState(lead)
   const [nota, setNota] = useState('')
@@ -55,9 +57,10 @@ function Ficha({ lead, onFechar }) {
   }
 
   function mudaEtapa(etapa) {
-    // perdido sem motivo é dado jogado fora: é o motivo que melhora o anúncio
-    if (etapa === 'perdido' && !rascunho.motivo_perda) {
-      aplica({ etapa, motivo_perda: MOTIVOS_PERDA[0] })
+    if (etapa === rascunho.etapa) return
+    // orçamento, venda e perda não fazem sentido sem o número junto
+    if (precisaConfirmar(etapa)) {
+      onPedirEtapa(lead, etapa)
       return
     }
     aplica({ etapa })
@@ -220,6 +223,8 @@ export default function Crm() {
   const [erroCriar, setErroCriar] = useState(null)
   const [visao, setVisao] = useState('quadro')
   const [soChamarHoje, setSoChamarHoje] = useState(false)
+  const [montandoDisparo, setMontandoDisparo] = useState(false)
+  const [pedindoEtapa, setPedindoEtapa] = useState(null)
 
   const hoje = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
@@ -258,12 +263,24 @@ export default function Crm() {
   }, [lista, busca])
 
   async function mudaEtapaDoCard(lead, etapaNova) {
+    // orçamento, venda e perda abrem o popup pedindo o valor / motivo
+    if (precisaConfirmar(etapaNova)) {
+      setPedindoEtapa({ lead, etapa: etapaNova })
+      return
+    }
     try {
-      // perdido sem motivo é dado jogado fora; abre a ficha pra escolher
-      const extra =
-        etapaNova === 'perdido' && !lead.motivo_perda ? { motivo_perda: MOTIVOS_PERDA[0] } : {}
-      await salvaLead(lead.id, { etapa: etapaNova, ...extra })
-      if (etapaNova === 'perdido' || etapaNova === 'vendido') setSelecionadoId(lead.id)
+      await salvaLead(lead.id, { etapa: etapaNova })
+    } catch (e) {
+      setErroCriar(e.message)
+    }
+  }
+
+  async function confirmaEtapa(campos, nota) {
+    const { lead } = pedindoEtapa
+    setPedindoEtapa(null)
+    try {
+      await salvaLead(lead.id, campos)
+      if (nota) await anotaObservacao(lead.id, nota)
     } catch (e) {
       setErroCriar(e.message)
     }
@@ -287,6 +304,15 @@ export default function Crm() {
 
   return (
     <>
+      {pedindoEtapa && (
+        <ConfirmaEtapa
+          lead={pedindoEtapa.lead}
+          etapa={pedindoEtapa.etapa}
+          onConfirmar={confirmaEtapa}
+          onCancelar={() => setPedindoEtapa(null)}
+        />
+      )}
+
       <div className="filters">
         <div>
           <h1 className="titulo-pagina">Leads</h1>
@@ -296,6 +322,9 @@ export default function Crm() {
           </p>
         </div>
         <div className="acoes-cabecalho">
+          <button className="botao-secundario" onClick={() => setMontandoDisparo((v) => !v)}>
+            <Send size={16} /> Disparar para o funil
+          </button>
           {chamarHoje.length > 0 && (
             <button
               className={`botao-secundario ${soChamarHoje ? 'aceso' : ''}`}
@@ -358,6 +387,10 @@ export default function Crm() {
       </div>
       )}
 
+      {montandoDisparo && (
+        <DisparoDoPipeline leads={leads} onFechar={() => setMontandoDisparo(false)} />
+      )}
+
       {numeroNovo && (
         <div className="card sugestao-novo">
           <span>
@@ -417,7 +450,11 @@ export default function Crm() {
         )}
 
         {(visao === 'lista' || selecionado) && (
-          <Ficha lead={selecionado} onFechar={() => setSelecionadoId(null)} />
+          <Ficha
+            lead={selecionado}
+            onFechar={() => setSelecionadoId(null)}
+            onPedirEtapa={(lead, etapa) => setPedindoEtapa({ lead, etapa })}
+          />
         )}
       </div>
     </>
