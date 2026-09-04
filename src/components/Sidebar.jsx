@@ -1,28 +1,31 @@
-import { Gauge, MessagesSquare, UsersRound, ChartNoAxesCombined, Settings, ShieldCheck } from 'lucide-react'
+import { Gauge, MessagesSquare, Send, UsersRound } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
-
-const EM_BREVE = [
-  { Icone: UsersRound, title: 'Leads (em breve)' },
-  { Icone: ChartNoAxesCombined, title: 'Relatórios (em breve)' },
-  { Icone: Settings, title: 'Configurações (em breve)' },
-  { Icone: ShieldCheck, title: 'Segurança (em breve)' },
-]
 
 export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const emConversas = location.pathname.startsWith('/conversas')
+  const emDisparos = location.pathname.startsWith('/disparos')
+  const emLeads = location.pathname.startsWith('/leads')
+
+  const secoes = [
+    { rotulo: 'Visão geral', Icone: Gauge, rota: '/', ativo: !emConversas && !emDisparos && !emLeads },
+    { rotulo: 'Conversas', Icone: MessagesSquare, rota: '/conversas', ativo: emConversas },
+    { rotulo: 'Leads', Icone: UsersRound, rota: '/leads', ativo: emLeads },
+    { rotulo: 'Disparos', Icone: Send, rota: '/disparos', ativo: emDisparos },
+  ]
 
   return (
     <aside className="sidebar">
-      <button className={`side-btn ${!emConversas ? 'active' : ''}`} title="Visão geral" onClick={() => navigate('/')}>
-        <Gauge size={21} strokeWidth={1.8} />
-      </button>
-      <button className={`side-btn ${emConversas ? 'active' : ''}`} title="Conversas" onClick={() => navigate('/conversas')}>
-        <MessagesSquare size={21} strokeWidth={1.8} />
-      </button>
-      {EM_BREVE.map(({ Icone, title }) => (
-        <button key={title} className="side-btn" title={title} disabled>
+      {secoes.map(({ rotulo, Icone, rota, ativo }) => (
+        <button
+          key={rota}
+          className={`side-btn ${ativo ? 'active' : ''}`}
+          title={rotulo}
+          aria-label={rotulo}
+          aria-current={ativo ? 'page' : undefined}
+          onClick={() => navigate(rota)}
+        >
           <Icone size={21} strokeWidth={1.8} />
         </button>
       ))}

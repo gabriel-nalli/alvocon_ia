@@ -106,7 +106,6 @@ button:not(:disabled) { cursor: pointer; }
   border-color: #b51e24; color: white;
   box-shadow: 0 0 18px rgba(227,27,35,.26), inset 0 0 20px rgba(227,27,35,.08);
 }
-.side-btn:disabled { opacity: .38; }
 .side-plate {
   margin-top: auto; margin-bottom: 18px; width: 58px; height: 110px;
   border: 1px solid #303438; border-radius: 8px;
@@ -527,3 +526,125 @@ button.icone:hover { color: #ff6b6b; }
   .grid-disparo { grid-template-columns: 1fr; }
   .campanha-item { flex-direction: column; }
 }
+
+/* ---------- CRM / Leads ---------- */
+.busca-crm {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  background: #0d0f11; border: 1px solid var(--border); border-radius: 12px; padding: 0 14px;
+}
+.busca-crm:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px rgba(227,27,35,.12); }
+.busca-crm svg { color: var(--muted); flex-shrink: 0; }
+.busca-crm input {
+  flex: 1; background: transparent; border: 0; outline: none;
+  padding: 13px 0; color: #f0f0f0; font: inherit; font-size: 15px;
+}
+.etapas-filtro { flex-wrap: wrap; margin-bottom: 16px; }
+.etapas-filtro button { font-size: 12.5px; padding: 8px 14px; }
+
+.sugestao-novo {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 18px; margin-bottom: 14px; font-size: 13.5px; flex-wrap: wrap;
+}
+
+.crm-layout { display: grid; grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
+.lista-crm { max-height: 72vh; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; }
+.crm-item {
+  background: transparent; border: 0; border-bottom: 1px solid var(--borda-escura);
+  text-align: left; padding: 12px 12px; display: grid; gap: 5px; border-radius: 8px;
+}
+.crm-item:last-child { border-bottom: 0; }
+.crm-item:hover { background: #16181b; }
+.crm-item.ativo { background: rgba(227,27,35,.09); box-shadow: inset 2px 0 0 var(--red); }
+.crm-item-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.crm-nome { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pastilha { width: 9px; height: 9px; border-radius: 99px; flex-shrink: 0; }
+.crm-item-sub { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--muted); }
+.valor-venda { color: #46d6a8; font-variant-numeric: tabular-nums; }
+.etiquetas-mini { display: inline-flex; align-items: center; gap: 4px; }
+
+.ficha { max-height: 72vh; overflow-y: auto; }
+.ficha-vazia { padding: 40px 24px; color: var(--muted); display: grid; gap: 8px; align-content: start; }
+.ficha-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ficha-nome { margin: 0; font-size: 19px; }
+.ficha-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+.badge-origem {
+  background: rgba(255,255,255,.07); border: 1px solid var(--borda-escura);
+  border-radius: 99px; padding: 1px 9px; font-size: 11px;
+}
+
+.etapas-trilha { display: flex; flex-wrap: wrap; gap: 7px; }
+.etapa-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #111315; border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 14px; font-size: 12.5px; color: var(--muted);
+}
+.etapa-btn:hover:not(:disabled) { color: #fff; border-color: #55595e; }
+.etapa-btn.ativa { background: #16181b; font-weight: 600; }
+.etapa-btn:disabled { opacity: .5; }
+
+.linha-campos.dois { grid-template-columns: 1fr 1fr; }
+.campo-largo { display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); }
+
+.historico { border-top: 1px solid var(--borda-escura); padding-top: 14px; display: grid; gap: 10px; }
+.historico h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.nova-nota { display: flex; gap: 8px; }
+.nova-nota .campo { flex: 1; }
+.linha-tempo { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; max-height: 260px; overflow-y: auto; }
+.linha-tempo li { display: grid; grid-template-columns: 96px 1fr; gap: 10px; font-size: 12.5px; }
+.linha-tempo .quando { color: var(--texto-mutado); font-variant-numeric: tabular-nums; }
+.linha-tempo .oque { color: #dcdcdc; }
+
+@media (max-width: 1300px) {
+  .crm-layout { grid-template-columns: 1fr; }
+  .lista-crm { max-height: 40vh; }
+}
+
+/* ---------- Kanban ---------- */
+.acoes-cabecalho { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.botao-secundario.aceso { border-color: var(--red); color: #fff; background: rgba(227,27,35,.12); }
+.alternador { display: flex; gap: 4px; background: #111315; border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
+.alternador button {
+  display: inline-flex; align-items: center; gap: 6px; background: transparent;
+  border: 0; border-radius: 999px; padding: 7px 14px; font-size: 13px; color: var(--muted);
+}
+.alternador button.active { background: #24272b; color: #fff; }
+
+.kanban {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 232px;
+  gap: 12px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 16px;
+  align-items: start;
+}
+.kanban-coluna {
+  background: #0e1012; border: 1px solid var(--borda-escura); border-radius: 12px;
+  padding: 12px; display: grid; gap: 8px; align-content: start; min-height: 140px;
+}
+.kanban-coluna.alvo { border-color: var(--red); background: rgba(227,27,35,.06); }
+.kanban-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.kanban-titulo { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; }
+.kanban-contagem {
+  background: #24272b; border-radius: 99px; padding: 1px 8px;
+  font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.kanban-total { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.kanban-cards { display: grid; gap: 8px; max-height: 58vh; overflow-y: auto; }
+.kanban-vazio { margin: 4px 0; color: var(--texto-mutado); font-size: 12px; }
+.kanban-card {
+  background: #16181b; border: 1px solid var(--borda-escura); border-radius: 10px;
+  padding: 10px 11px; display: grid; gap: 4px; cursor: grab;
+}
+.kanban-card:hover { border-color: #4a4e54; }
+.kanban-card.ativo { border-color: var(--red); box-shadow: 0 0 0 1px rgba(227,27,35,.35); }
+.kanban-card.arrastando { opacity: .4; cursor: grabbing; }
+.kanban-nome { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kanban-sub { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kanban-valor { font-size: 12px; color: #9ec7ff; font-variant-numeric: tabular-nums; }
+.kanban-valor.fechado { color: #46d6a8; }
+.kanban-alerta {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+  color: #ffc247; background: rgba(229,155,0,.13); border-radius: 99px; padding: 2px 8px;
+  justify-self: start;
+}
+.kanban-etiquetas { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--texto-mutado); }
+
+.crm-layout.so-ficha { grid-template-columns: 1fr; }
+@media (prefers-reduced-motion: reduce) { .kanban-card { transition: none; } }
