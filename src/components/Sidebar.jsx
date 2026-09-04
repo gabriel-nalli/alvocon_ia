@@ -1,4 +1,4 @@
-import { Gauge, MessagesSquare, Send, UsersRound } from 'lucide-react'
+import { Gauge, MessagesSquare, Send, UsersRound , TrendingUp} from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 export function Sidebar() {
@@ -7,12 +7,14 @@ export function Sidebar() {
   const emConversas = location.pathname.startsWith('/conversas')
   const emDisparos = location.pathname.startsWith('/disparos')
   const emLeads = location.pathname.startsWith('/leads')
+  const emRetorno = location.pathname.startsWith('/retorno')
 
   const secoes = [
-    { rotulo: 'Visão geral', Icone: Gauge, rota: '/', ativo: !emConversas && !emDisparos && !emLeads },
+    { rotulo: 'Visão geral', Icone: Gauge, rota: '/', ativo: !emConversas && !emDisparos && !emLeads && !emRetorno },
     { rotulo: 'Conversas', Icone: MessagesSquare, rota: '/conversas', ativo: emConversas },
     { rotulo: 'Leads', Icone: UsersRound, rota: '/leads', ativo: emLeads },
     { rotulo: 'Disparos', Icone: Send, rota: '/disparos', ativo: emDisparos },
+    { rotulo: 'Retorno', Icone: TrendingUp, rota: '/retorno', ativo: emRetorno },
   ]
 
   return (

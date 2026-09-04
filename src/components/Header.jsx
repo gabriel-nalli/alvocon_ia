@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Send, UsersRound } from 'lucide-react'
+import { Send, UsersRound , TrendingUp} from 'lucide-react'
 import { supabase } from '../supabase'
 import { Icons } from '../Icons.jsx'
 
@@ -9,7 +9,8 @@ export function Header() {
   const emConversas = location.pathname.startsWith('/conversas')
   const emDisparos = location.pathname.startsWith('/disparos')
   const emLeads = location.pathname.startsWith('/leads')
-  const emVisaoGeral = !emConversas && !emDisparos && !emLeads
+  const emRetorno = location.pathname.startsWith('/retorno')
+  const emVisaoGeral = !emConversas && !emDisparos && !emLeads && !emRetorno
 
   return (
     <header className="top-header">
@@ -29,6 +30,9 @@ export function Header() {
         </button>
         <button className={`nav-tab ${emDisparos ? 'ativo' : ''}`} onClick={() => navigate('/disparos')}>
           <Send size={19} /> Disparos
+        </button>
+        <button className={`nav-tab ${emRetorno ? 'ativo' : ''}`} onClick={() => navigate('/retorno')}>
+          <TrendingUp size={19} /> Retorno
         </button>
       </nav>
 
