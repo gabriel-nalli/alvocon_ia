@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { TriangleAlert } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import {
   useRetorno,
   salvaInvestimento,
@@ -121,9 +122,26 @@ export default function Retorno() {
           <TriangleAlert size={17} />
           <span>
             Nenhuma venda marcada ainda, então o ROI aparece como −100%. Vá em{' '}
-            <strong>Leads</strong>, ache o cliente pelo número e marque a venda com o valor — o
-            número aqui se ajusta sozinho.
+            <Link to="/leads">Leads</Link>, ache o cliente pelo número e marque a venda com o
+            valor — o número aqui se ajusta sozinho.
           </span>
+        </div>
+      )}
+
+      {total.vendas > 0 && total.faturamento === 0 && (
+        <div className="card aviso-alerta">
+          <TriangleAlert size={17} />
+          <div>
+            <strong>
+              {total.vendas} venda{total.vendas > 1 ? 's' : ''} marcada
+              {total.vendas > 1 ? 's' : ''} sem valor
+            </strong>
+            <p>
+              Por isso o ROI continua em −100%: o faturamento está zerado. Abra cada uma em{' '}
+              <Link to="/leads">Leads</Link> e preencha o valor da venda — daqui pra frente o
+              popup pede isso na hora de mover o card.
+            </p>
+          </div>
         </div>
       )}
 
