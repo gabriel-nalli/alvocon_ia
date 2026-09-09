@@ -124,13 +124,20 @@ export async function anotaObservacao(leadId, texto) {
 
 // Lead que não veio da IA (ligou direto, indicação). Origem separada pra não
 // entrar na conta do Meta.
-export async function criaLeadManual({ telefone, nome, origem = 'manual' }) {
+export async function criaLeadManual({ telefone, nome, cidade, tipo, origem = 'manual' }) {
   const numero = normalizaNumero(telefone)
   if (!numero) throw new Error('Número inválido. Use DDD + número, ex: 19 99999-8888.')
 
   const { data, error } = await supabase
     .from('crm_leads')
-    .insert({ telefone: numero, nome: nome || null, origem, chegou_em: new Date().toISOString() })
+    .insert({
+      telefone: numero,
+      nome: nome || null,
+      cidade: cidade || null,
+      tipo: tipo || null,
+      origem,
+      chegou_em: new Date().toISOString(),
+    })
     .select()
     .single()
   if (error) {

@@ -17,6 +17,7 @@ import { normalizaNumero } from '../lib/planilha'
 import { Kanban } from '../components/Kanban.jsx'
 import { DisparoDoPipeline } from '../components/DisparoDoPipeline.jsx'
 import { ConfirmaEtapa, precisaConfirmar } from '../components/ConfirmaEtapa.jsx'
+import { NovoLead } from '../components/NovoLead.jsx'
 
 function Ficha({ lead, onFechar, onPedirEtapa }) {
   const eventos = useHistorico(lead?.id)
@@ -266,12 +267,13 @@ export default function Crm() {
   const [busca, setBusca] = useState('')
   const [etapa, setEtapa] = useState('todos')
   const [selecionadoId, setSelecionadoId] = useState(null)
-  const [criando, setCriando] = useState(false)
   const [erroCriar, setErroCriar] = useState(null)
   const [visao, setVisao] = useState('quadro')
   const [soChamarHoje, setSoChamarHoje] = useState(false)
   const [montandoDisparo, setMontandoDisparo] = useState(false)
   const [pedindoEtapa, setPedindoEtapa] = useState(null)
+  // string = telefone pré-preenchido vindo da busca; '' = cadastro do zero
+  const [cadastrando, setCadastrando] = useState(null)
 
   const hoje = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
@@ -333,24 +335,24 @@ export default function Crm() {
     }
   }
 
-  async function cadastra() {
-    setCriando(true)
-    setErroCriar(null)
-    try {
-      const novo = await criaLeadManual({ telefone: numeroNovo })
-      setBusca('')
-      setSelecionadoId(novo.id)
-    } catch (e) {
-      setErroCriar(e.message)
-    } finally {
-      setCriando(false)
-    }
-  }
 
   if (carregando) return <div className="tela-carregando">Carregando leads…</div>
 
   return (
     <>
+      {cadastrando !== null && (
+        <NovoLead
+          telefoneInicial={cadastrando}
+          onFechar={() => setCadastrando(null)}
+          onCriado={(novo) => {
+            setCadastrando(null)
+            setBusca('')
+            setVisao('lista')
+            setSelecionadoId(novo.id)
+          }}
+        />
+      )}
+
       {pedindoEtapa && (
         <ConfirmaEtapa
           lead={pedindoEtapa.lead}
@@ -369,6 +371,9 @@ export default function Crm() {
           </p>
         </div>
         <div className="acoes-cabecalho">
+          <button className="botao-secundario" onClick={() => setCadastrando('')}>
+            <UserPlus size={16} /> Cadastrar lead
+          </button>
           <button className="botao-secundario" onClick={() => setMontandoDisparo((v) => !v)}>
             <Send size={16} /> Disparar para o funil
           </button>
@@ -444,8 +449,8 @@ export default function Crm() {
             Ninguém no CRM com <strong>{formataTelefone(numeroNovo)}</strong>. Esse lead não veio
             da Isabela.
           </span>
-          <button className="botao-primario" disabled={criando} onClick={cadastra}>
-            <UserPlus size={16} /> Cadastrar como lead manual
+          <button className="botao-primario" onClick={() => setCadastrando(busca)}>
+            <UserPlus size={16} /> Cadastrar esse número
           </button>
         </div>
       )}
