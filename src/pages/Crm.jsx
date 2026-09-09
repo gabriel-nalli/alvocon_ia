@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Search, UserPlus, Tag, X, Check, LayoutGrid, List, CalendarClock, Send } from 'lucide-react'
 import {
   useCrmLeads,
@@ -20,16 +20,18 @@ import { ConfirmaEtapa, precisaConfirmar } from '../components/ConfirmaEtapa.jsx
 
 function Ficha({ lead, onFechar, onPedirEtapa }) {
   const eventos = useHistorico(lead?.id)
+  // a Ficha é remontada a cada lead (key no pai), então o rascunho já nasce
+  // com o lead certo. Sincronizar por useEffect deixava um render inteiro com
+  // o rascunho do lead anterior — ou null, na primeira vez, e o acesso a
+  // .etapa derrubava a tela
   const [rascunho, setRascunho] = useState(lead)
   const [nota, setNota] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState(null)
 
-  useEffect(() => {
-    setRascunho(lead)
-    setNota('')
-    setErro(null)
-  }, [lead])
+  // Nunca leia rascunho direto: se ele vier null com um lead na tela, o acesso
+  // a .etapa derruba a árvore inteira do React e a página fica preta.
+  const atual = rascunho ?? lead
 
   if (!lead) {
     return (
@@ -57,7 +59,7 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
   }
 
   function mudaEtapa(etapa) {
-    if (etapa === rascunho.etapa) return
+    if (etapa === atual.etapa) return
     // orçamento, venda e perda não fazem sentido sem o número junto
     if (precisaConfirmar(etapa)) {
       onPedirEtapa(lead, etapa)
@@ -76,6 +78,23 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
     }
   }
 
+  // salva no blur: gravar a cada tecla encheria o histórico de ruído
+  const campoTexto = (chave, rotulo, dica) => (
+    <label>
+      {rotulo}
+      <input
+        className="campo"
+        placeholder={dica}
+        value={atual[chave] ?? ''}
+        onChange={(e) => setRascunho({ ...atual, [chave]: e.target.value })}
+        onBlur={(e) => {
+          const v = e.target.value.trim() || null
+          if (v !== lead[chave]) aplica({ [chave]: v })
+        }}
+      />
+    </label>
+  )
+
   const campoNumero = (chave, rotulo) => (
     <label>
       {rotulo}
@@ -85,8 +104,8 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
         min="0"
         step="0.01"
         placeholder="0,00"
-        value={rascunho[chave] ?? ''}
-        onChange={(e) => setRascunho({ ...rascunho, [chave]: e.target.value })}
+        value={atual[chave] ?? ''}
+        onChange={(e) => setRascunho({ ...atual, [chave]: e.target.value })}
         onBlur={(e) => {
           const v = e.target.value === '' ? null : Number(e.target.value)
           if (v !== lead[chave]) aplica({ [chave]: v })
@@ -96,10 +115,20 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
   )
 
   return (
-    <div className="card bloco ficha">
+    <div className="card bloco ficha-lead">
       <div className="ficha-topo">
-        <div>
-          <h2 className="ficha-nome">{lead.nome || lead.nome_perfil || 'Sem nome'}</h2>
+        <div className="ficha-identidade">
+          <input
+            className="campo ficha-nome-editavel"
+            placeholder={lead.nome_perfil || 'Sem nome — clique para preencher'}
+            value={atual.nome ?? ''}
+            onChange={(e) => setRascunho({ ...atual, nome: e.target.value })}
+            onBlur={(e) => {
+              const v = e.target.value.trim() || null
+              if (v !== lead.nome) aplica({ nome: v })
+            }}
+            aria-label="Nome do lead"
+          />
           <div className="ficha-meta">
             <span>{formataTelefone(lead.telefone)}</span>
             {lead.cidade && <span>· {lead.cidade}</span>}
@@ -118,16 +147,34 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
         {ETAPAS.map((e) => (
           <button
             key={e.id}
-            className={`etapa-btn ${rascunho.etapa === e.id ? 'ativa' : ''}`}
-            style={rascunho.etapa === e.id ? { borderColor: e.cor, color: e.cor } : undefined}
+            className={`etapa-btn ${atual.etapa === e.id ? 'ativa' : ''}`}
+            style={atual.etapa === e.id ? { borderColor: e.cor, color: e.cor } : undefined}
             disabled={salvando}
             title={e.ajuda}
             onClick={() => mudaEtapa(e.id)}
           >
-            {rascunho.etapa === e.id && <Check size={13} />}
+            {atual.etapa === e.id && <Check size={13} />}
             {e.rotulo}
           </button>
         ))}
+      </div>
+
+      <div className="linha-campos tres">
+        {campoTexto('cidade', 'Cidade', 'Onde fica a obra')}
+        <label>
+          Perfil
+          <select
+            className="campo"
+            value={atual.tipo ?? ''}
+            onChange={(e) => aplica({ tipo: e.target.value || null })}
+          >
+            <option value="">Não informado</option>
+            <option value="CLIENTE FINAL">Cliente final</option>
+            <option value="INSTALADOR">Instalador</option>
+            <option value="REVENDEDOR">Revendedor</option>
+          </select>
+        </label>
+        {campoTexto('metragem', 'Metragem', 'Ex: 30m')}
       </div>
 
       <div className="linha-campos dois">
@@ -141,16 +188,16 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
           <input
             className="campo"
             type="date"
-            value={rascunho.proximo_contato ?? ''}
+            value={atual.proximo_contato ?? ''}
             onChange={(e) => aplica({ proximo_contato: e.target.value || null })}
           />
         </label>
-        {rascunho.etapa === 'perdido' && (
+        {atual.etapa === 'perdido' && (
           <label>
             Motivo da perda
             <select
               className="campo"
-              value={rascunho.motivo_perda ?? ''}
+              value={atual.motivo_perda ?? ''}
               onChange={(e) => aplica({ motivo_perda: e.target.value })}
             >
               {MOTIVOS_PERDA.map((m) => (
@@ -166,14 +213,14 @@ function Ficha({ lead, onFechar, onPedirEtapa }) {
         <input
           className="campo"
           placeholder="instalador, obra grande, urgente"
-          value={(rascunho.etiquetas ?? []).join(', ')}
+          value={(atual.etiquetas ?? []).join(', ')}
           onChange={(e) =>
             setRascunho({
-              ...rascunho,
+              ...atual,
               etiquetas: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
             })
           }
-          onBlur={() => aplica({ etiquetas: rascunho.etiquetas ?? [] })}
+          onBlur={() => aplica({ etiquetas: atual.etiquetas ?? [] })}
         />
       </label>
 
@@ -451,6 +498,7 @@ export default function Crm() {
 
         {(visao === 'lista' || selecionado) && (
           <Ficha
+            key={selecionado?.id ?? 'vazia'}
             lead={selecionado}
             onFechar={() => setSelecionadoId(null)}
             onPedirEtapa={(lead, etapa) => setPedindoEtapa({ lead, etapa })}

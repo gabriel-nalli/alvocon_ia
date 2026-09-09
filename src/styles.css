@@ -562,7 +562,7 @@ button.icone:hover { color: #ff6b6b; }
 .valor-venda { color: #46d6a8; font-variant-numeric: tabular-nums; }
 .etiquetas-mini { display: inline-flex; align-items: center; gap: 4px; }
 
-.ficha { max-height: 72vh; overflow-y: auto; }
+.ficha-lead { max-height: 72vh; overflow-y: auto; }
 .ficha-vazia { padding: 40px 24px; color: var(--muted); display: grid; gap: 8px; align-content: start; }
 .ficha-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .ficha-nome { margin: 0; font-size: 19px; }
@@ -721,3 +721,11 @@ button.icone:hover { color: #ff6b6b; }
 .campo-grande { font-size: 22px; padding: 14px; font-variant-numeric: tabular-nums; }
 .modal-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 .aviso-neutro a, .aviso-alerta a { color: inherit; text-decoration: underline; font-weight: 600; }
+.ficha-identidade { flex: 1; min-width: 0; }
+.ficha-nome-editavel {
+  font-size: 19px; font-weight: 600; padding: 4px 8px; margin-left: -8px;
+  background: transparent; border-color: transparent;
+}
+.ficha-nome-editavel:hover { border-color: var(--borda-escura); }
+.ficha-nome-editavel:focus { background: #0d0f11; border-color: var(--red); }
+.linha-campos.tres { grid-template-columns: repeat(3, 1fr); }
