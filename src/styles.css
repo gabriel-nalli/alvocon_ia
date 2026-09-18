@@ -729,3 +729,4 @@ button.icone:hover { color: #ff6b6b; }
 .ficha-nome-editavel:hover { border-color: var(--borda-escura); }
 .ficha-nome-editavel:focus { background: #0d0f11; border-color: var(--red); }
 .linha-campos.tres { grid-template-columns: repeat(3, 1fr); }
+.kanban-total.alerta { color: #ffc247; }

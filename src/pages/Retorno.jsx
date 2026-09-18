@@ -71,7 +71,9 @@ export default function Retorno() {
           <h1 className="titulo-pagina">Retorno do Meta</h1>
           <p className="subtitulo-pagina">
             Cada semana conta os leads que <strong>chegaram</strong> nela, mesmo que a venda saia
-            meses depois. É a verba daquela semana que pagou por esse lead.
+            meses depois. É a verba daquela semana que pagou por esse lead. Por isso venda de lead
+            que chegou antes do período medido, ou que não veio do anúncio, não entra aqui — mesmo
+            aparecendo em Vendido no quadro.
           </p>
         </div>
         <div className="alternador">
@@ -101,7 +103,7 @@ export default function Retorno() {
         <Kpi
           rotulo="Faturado"
           valor={dinheiro(total.faturamento)}
-          ajuda={`${total.vendas} vendas fechadas`}
+          ajuda={`${total.vendas} ${total.vendas === 1 ? 'venda' : 'vendas'} de leads do anúncio`}
           tom={total.faturamento > 0 ? 'bom' : ''}
         />
         <Kpi

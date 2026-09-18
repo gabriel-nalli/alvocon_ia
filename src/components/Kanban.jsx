@@ -2,6 +2,16 @@ import { useMemo, useState } from 'react'
 import { Tag, CalendarClock } from 'lucide-react'
 import { ETAPAS, formataDinheiro, formataTelefone } from '../lib/crm'
 
+// Qual dinheiro o card representa depende da etapa. Em Vendido só vale a venda:
+// cair no valor do orçamento ali fazia o quadro mostrar como faturado um
+// dinheiro que nunca entrou, e a coluna não batia com o Retorno. Perdido não
+// soma nada — orçamento de quem não comprou não é total de coisa nenhuma.
+function valorDoCard(lead) {
+  if (lead.etapa === 'vendido') return lead.valor_venda
+  if (lead.etapa === 'perdido') return null
+  return lead.valor_orcamento
+}
+
 // Quadro do funil. Arrastar é atalho, não o único caminho: a ficha do lead tem
 // os mesmos botões de etapa, então quem usa teclado não fica de fora.
 export function Kanban({ leads, selecionadoId, onSelecionar, onMoverEtapa }) {
@@ -13,13 +23,10 @@ export function Kanban({ leads, selecionadoId, onSelecionar, onMoverEtapa }) {
     () =>
       ETAPAS.map((etapa) => {
         const doGrupo = leads.filter((l) => l.etapa === etapa.id)
-        // no quadro, o valor que interessa é o que ainda pode entrar: orçamento
-        // em aberto nas etapas do meio, venda fechada no fim
-        const total = doGrupo.reduce(
-          (soma, l) => soma + Number(l.valor_venda ?? l.valor_orcamento ?? 0),
-          0,
-        )
-        return { ...etapa, leads: doGrupo, total }
+        const total = doGrupo.reduce((soma, l) => soma + Number(valorDoCard(l) ?? 0), 0)
+        const semValor =
+          etapa.id === 'vendido' ? doGrupo.filter((l) => l.valor_venda == null).length : 0
+        return { ...etapa, leads: doGrupo, total, semValor }
       }),
     [leads],
   )
@@ -54,6 +61,11 @@ export function Kanban({ leads, selecionadoId, onSelecionar, onMoverEtapa }) {
           {coluna.total > 0 && (
             <div className="kanban-total">{formataDinheiro(coluna.total)}</div>
           )}
+          {coluna.semValor > 0 && (
+            <div className="kanban-total alerta">
+              {coluna.semValor} sem valor da venda
+            </div>
+          )}
 
           <div className="kanban-cards">
             {coluna.leads.length === 0 && <p className="kanban-vazio">—</p>}
@@ -82,10 +94,14 @@ export function Kanban({ leads, selecionadoId, onSelecionar, onMoverEtapa }) {
                   <span className="kanban-sub">
                     {lead.cidade || formataTelefone(lead.telefone)}
                   </span>
-                  {(lead.valor_venda ?? lead.valor_orcamento) != null && (
-                    <span className={`kanban-valor ${lead.valor_venda != null ? 'fechado' : ''}`}>
-                      {formataDinheiro(lead.valor_venda ?? lead.valor_orcamento)}
+                  {valorDoCard(lead) != null && (
+                    <span className={`kanban-valor ${lead.etapa === 'vendido' ? 'fechado' : ''}`}>
+                      {lead.etapa === 'vendido' ? '' : 'orç. '}
+                      {formataDinheiro(valorDoCard(lead))}
                     </span>
+                  )}
+                  {lead.etapa === 'vendido' && lead.valor_venda == null && (
+                    <span className="kanban-alerta">falta o valor da venda</span>
                   )}
                   {atrasado && (
                     <span className="kanban-alerta">
