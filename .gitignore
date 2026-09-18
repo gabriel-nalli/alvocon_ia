@@ -6,3 +6,4 @@ dist
 .vercel
 .DS_Store
 backup-visual-scifi-2026-07-10
+supabase/.temp
