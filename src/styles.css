@@ -739,3 +739,5 @@ button.icone:hover { color: #ff6b6b; }
 .grupo-fora ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
 .grupo-fora li { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; font-size: 13px; }
 .grupo-fora .num { font-variant-numeric: tabular-nums; text-align: right; min-width: 96px; }
+.kanban-valor.perda, .kanban-total.perda { color: #ff8f8f; }
+.kanban-motivo { font-size: 11.5px; color: var(--muted); font-style: italic; }

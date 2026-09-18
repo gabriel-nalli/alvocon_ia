@@ -4,13 +4,15 @@ import { ETAPAS, formataDinheiro, formataTelefone } from '../lib/crm'
 
 // Qual dinheiro o card representa depende da etapa. Em Vendido só vale a venda:
 // cair no valor do orçamento ali fazia o quadro mostrar como faturado um
-// dinheiro que nunca entrou, e a coluna não batia com o Retorno. Perdido não
-// soma nada — orçamento de quem não comprou não é total de coisa nenhuma.
+// dinheiro que nunca entrou, e a coluna não batia com o Retorno. Em Perdido é
+// o orçamento que não fechou — o dinheiro que ficou na mesa, que é o que diz
+// se o problema é preço.
 function valorDoCard(lead) {
   if (lead.etapa === 'vendido') return lead.valor_venda
-  if (lead.etapa === 'perdido') return null
   return lead.valor_orcamento
 }
+
+const PREFIXO_VALOR = { vendido: '', perdido: 'perdeu ' }
 
 // Quadro do funil. Arrastar é atalho, não o único caminho: a ficha do lead tem
 // os mesmos botões de etapa, então quem usa teclado não fica de fora.
@@ -59,7 +61,10 @@ export function Kanban({ leads, selecionadoId, onSelecionar, onMoverEtapa }) {
             <span className="kanban-contagem">{coluna.leads.length}</span>
           </header>
           {coluna.total > 0 && (
-            <div className="kanban-total">{formataDinheiro(coluna.total)}</div>
+            <div className={`kanban-total ${coluna.id === 'perdido' ? 'perda' : ''}`}>
+              {formataDinheiro(coluna.total)}
+              {coluna.id === 'perdido' && ' ficaram na mesa'}
+            </div>
           )}
           {coluna.semValor > 0 && (
             <div className="kanban-total alerta">
@@ -95,10 +100,17 @@ export function Kanban({ leads, selecionadoId, onSelecionar, onMoverEtapa }) {
                     {lead.cidade || formataTelefone(lead.telefone)}
                   </span>
                   {valorDoCard(lead) != null && (
-                    <span className={`kanban-valor ${lead.etapa === 'vendido' ? 'fechado' : ''}`}>
-                      {lead.etapa === 'vendido' ? '' : 'orç. '}
+                    <span
+                      className={`kanban-valor ${
+                        lead.etapa === 'vendido' ? 'fechado' : lead.etapa === 'perdido' ? 'perda' : ''
+                      }`}
+                    >
+                      {PREFIXO_VALOR[lead.etapa] ?? 'orç. '}
                       {formataDinheiro(valorDoCard(lead))}
                     </span>
+                  )}
+                  {lead.etapa === 'perdido' && lead.motivo_perda && (
+                    <span className="kanban-motivo">{lead.motivo_perda}</span>
                   )}
                   {lead.etapa === 'vendido' && lead.valor_venda == null && (
                     <span className="kanban-alerta">falta o valor da venda</span>
