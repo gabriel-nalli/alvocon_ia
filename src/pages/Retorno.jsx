@@ -33,7 +33,7 @@ function CelulaRoi({ roi }) {
 }
 
 export default function Retorno() {
-  const { semanas, carregando, erro } = useRetorno()
+  const { semanas, vendasFora, carregando, erro } = useRetorno()
   const [agrupamento, setAgrupamento] = useState('semana')
   const [salvando, setSalvando] = useState(null)
   const [falha, setFalha] = useState(null)
@@ -43,6 +43,16 @@ export default function Retorno() {
     [semanas, agrupamento],
   )
   const total = useMemo(() => totaliza(semanas), [semanas])
+
+  const antigas = useMemo(
+    () => vendasFora.filter((v) => v.motivo === 'antes_do_periodo'),
+    [vendasFora],
+  )
+  const semAnuncio = useMemo(
+    () => vendasFora.filter((v) => v.motivo === 'fora_do_anuncio'),
+    [vendasFora],
+  )
+  const somaDe = (lista) => lista.reduce((t, v) => t + Number(v.valor_venda || 0), 0)
 
   // semanas que custaram dinheiro e trouxeram quase nada
   const desperdicio = useMemo(
@@ -163,6 +173,59 @@ export default function Retorno() {
               investimento na tabela abaixo.
             </p>
           </div>
+        </div>
+      )}
+
+      {vendasFora.length > 0 && (
+        <div className="card bloco vendas-fora">
+          <h2>Vendas que este relatório não conta</h2>
+          <p className="dica">
+            Continuam valendo — só não entram no ROI das semanas acima, porque não foi a verba
+            dessas semanas que trouxe esses leads.
+          </p>
+
+          {antigas.length > 0 && (
+            <div className="grupo-fora">
+              <div className="grupo-fora-topo">
+                <strong>Leads do anúncio que chegaram antes do período medido</strong>
+                <span className="valor-fora">{dinheiro(somaDe(antigas))}</span>
+              </div>
+              <p className="dica">
+                Vieram do Meta e fecharam agora. Somando com o faturado acima, o Meta trouxe{' '}
+                <strong>{dinheiro(total.faturamento + somaDe(antigas))}</strong> em vendas até
+                aqui.
+              </p>
+              <ul>
+                {antigas.map((v) => (
+                  <li key={v.id}>
+                    <span>{v.nome || v.nome_perfil || v.telefone}</span>
+                    <span className="txt-muted">
+                      chegou {new Date(v.chegou_em).toLocaleDateString('pt-BR')}
+                    </span>
+                    <span className="num">{dinheiro(v.valor_venda || 0)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {semAnuncio.length > 0 && (
+            <div className="grupo-fora">
+              <div className="grupo-fora-topo">
+                <strong>Não vieram do anúncio</strong>
+                <span className="valor-fora">{dinheiro(somaDe(semAnuncio))}</span>
+              </div>
+              <ul>
+                {semAnuncio.map((v) => (
+                  <li key={v.id}>
+                    <span>{v.nome || v.nome_perfil || v.telefone}</span>
+                    <span className="txt-muted">{v.origem}</span>
+                    <span className="num">{dinheiro(v.valor_venda || 0)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

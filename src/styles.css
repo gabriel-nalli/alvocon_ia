@@ -730,3 +730,12 @@ button.icone:hover { color: #ff6b6b; }
 .ficha-nome-editavel:focus { background: #0d0f11; border-color: var(--red); }
 .linha-campos.tres { grid-template-columns: repeat(3, 1fr); }
 .kanban-total.alerta { color: #ffc247; }
+
+/* ---------- Vendas fora do relatório de retorno ---------- */
+.vendas-fora { margin-bottom: 16px; }
+.grupo-fora { border-top: 1px solid var(--borda-escura); padding-top: 12px; display: grid; gap: 6px; }
+.grupo-fora-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13.5px; }
+.valor-fora { font-size: 17px; font-weight: 700; color: #46d6a8; font-variant-numeric: tabular-nums; }
+.grupo-fora ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
+.grupo-fora li { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; font-size: 13px; }
+.grupo-fora .num { font-variant-numeric: tabular-nums; text-align: right; min-width: 96px; }

@@ -9,20 +9,53 @@ import { supabase } from '../supabase'
 // trazê-lo. Medir pela data da venda faria a verba antiga parecer desperdício
 // e a nova parecer milagre.
 
+// Venda que o relatório não conta, e por quê. Sem isto, cortar a medição em
+// setembro fazia a venda de um lead de agosto que fecha em setembro sumir de
+// todas as telas de retorno — dinheiro que veio do Meta, invisível no
+// relatório do Meta.
+function separaVendasFora(vendidos, semanas) {
+  if (!semanas.length) return []
+  const inicio = semanas.reduce((min, s) => (s.semana < min ? s.semana : min), semanas[0].semana)
+  // a view agrupa pela segunda-feira da chegada, então chegar antes da primeira
+  // segunda medida é o mesmo que cair fora do relatório
+  const corte = new Date(`${inicio}T00:00:00`)
+  return vendidos
+    .map((l) => {
+      if (l.origem !== 'ia') return { ...l, motivo: 'fora_do_anuncio' }
+      if (new Date(l.chegou_em) < corte) return { ...l, motivo: 'antes_do_periodo' }
+      return null
+    })
+    .filter(Boolean)
+}
+
 export function useRetorno() {
-  const [estado, setEstado] = useState({ semanas: [], carregando: true, erro: null })
+  const [estado, setEstado] = useState({
+    semanas: [],
+    vendasFora: [],
+    carregando: true,
+    erro: null,
+  })
   const timer = useRef(null)
 
   const carrega = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('crm_retorno_semanal')
-      .select('*')
-      .order('semana', { ascending: false })
-    if (error) {
-      setEstado((s) => ({ ...s, carregando: false, erro: error.message }))
+    const [semanas, vendidos] = await Promise.all([
+      supabase.from('crm_retorno_semanal').select('*').order('semana', { ascending: false }),
+      supabase
+        .from('crm_leads')
+        .select('id, nome, nome_perfil, telefone, origem, chegou_em, vendido_em, valor_venda')
+        .eq('etapa', 'vendido'),
+    ])
+    const erro = semanas.error || vendidos.error
+    if (erro) {
+      setEstado((s) => ({ ...s, carregando: false, erro: erro.message }))
       return
     }
-    setEstado({ semanas: data ?? [], carregando: false, erro: null })
+    setEstado({
+      semanas: semanas.data ?? [],
+      vendasFora: separaVendasFora(vendidos.data ?? [], semanas.data ?? []),
+      carregando: false,
+      erro: null,
+    })
   }, [])
 
   useEffect(() => {
