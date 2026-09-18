@@ -20,6 +20,30 @@ function fmtDataHora(ts) {
   })
 }
 
+// Quem mandou cada mensagem, pra rotular a bolha e escolher a cor.
+const REMETENTE = {
+  ia: () => 'Isabela',
+  lead: () => 'Cliente',
+  automatica: () => 'Resposta automática',
+  humano: (msg) => msg.remetente_nome || 'Vendedor',
+}
+
+const ICONE_TIPO = {
+  audio: '🎙️',
+  imagem: '📷',
+  video: '🎥',
+  documento: '📄',
+  figurinha: '🖼️',
+  album: '🖼️',
+  contato: '👤',
+  localizacao: '📍',
+  lista: '📋',
+}
+
+function remetenteDe(msg) {
+  return (REMETENTE[msg.direcao] ?? REMETENTE.lead)(msg)
+}
+
 export default function Conversas() {
   const { leads, mensagens, carregando } = useDados()
   const { telefone } = useParams()
@@ -130,15 +154,21 @@ export default function Conversas() {
               {msgsDoLead.length === 0 && (
                 <div className="vazio">Nenhuma mensagem registrada pra esse lead ainda.</div>
               )}
-              {msgsDoLead.map((msg) => (
-                <div key={msg.id} className={`bolha ${msg.direcao === 'ia' ? 'ia' : 'lead'}`}>
-                  {msg.texto}
-                  <span className="hora">
-                    {msg.direcao === 'ia' ? 'Isabela · ' : 'Cliente · '}
-                    {fmtDataHora(msg.criado_em)}
-                  </span>
-                </div>
-              ))}
+              {msgsDoLead.map((msg) => {
+                const icone = msg.tipo && msg.tipo !== 'texto' ? ICONE_TIPO[msg.tipo] : null
+                return (
+                  <div key={msg.id} className={`bolha ${msg.direcao}`}>
+                    {icone && <span className="bolha-icone">{icone} </span>}
+                    {msg.texto}
+                    <span className="hora">
+                      {remetenteDe(msg)}
+                      {msg.direcao === 'humano' && msg.canal ? ` (${msg.canal})` : ''}
+                      {' · '}
+                      {fmtDataHora(msg.criado_em)}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </>
         )}

@@ -379,7 +379,18 @@ button:not(:disabled) { cursor: pointer; }
   background: linear-gradient(180deg, rgba(227,27,35,.16), rgba(227,27,35,.07));
   border: 1px solid #5a171a; border-bottom-right-radius: 4px;
 }
+.bolha.humano {
+  align-self: flex-end;
+  background: linear-gradient(180deg, rgba(43,138,196,.18), rgba(43,138,196,.06));
+  border: 1px solid #1c4f6b; border-bottom-right-radius: 4px;
+}
+.bolha.automatica {
+  align-self: center; max-width: 85%; text-align: center;
+  background: transparent; border: 1px dashed #3b3f43; color: var(--muted);
+  font-size: 12.5px; padding: 6px 12px;
+}
 .bolha .hora { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); }
+.bolha-icone { opacity: .85; }
 
 @media (max-width: 1300px) {
   body { min-width: 1024px; }
