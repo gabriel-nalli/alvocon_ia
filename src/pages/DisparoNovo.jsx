@@ -13,6 +13,8 @@ import {
 import { leContatos, leContatosColados } from '../lib/planilha'
 import {
   criaCampanha,
+  comContatosDeTeste,
+  CONTATOS_TESTE,
   enviaMidia,
   listaModelos,
   salvaModelo,
@@ -232,6 +234,7 @@ export default function DisparoNovo() {
   }
 
   const mensagensValidas = mensagens.filter((m) => m.texto.trim() || m.midia_url)
+  const totalComTeste = comContatosDeTeste(contatos).length
   const podeSalvar = nome.trim() && contatos.length > 0 && mensagensValidas.length > 0 && !salvando
 
   async function salvar() {
@@ -421,6 +424,11 @@ export default function DisparoNovo() {
             A planilha precisa de uma coluna <strong>NUMERO</strong> (ou TELEFONE/CELULAR) e, de
             preferência, <strong>NOME</strong>. O DDI 55 é adicionado sozinho quando falta.
           </p>
+          <p className="dica">
+            <strong>{CONTATOS_TESTE.map((c) => c.nome).join(' e ')}</strong> entram sempre, na
+            frente da fila: eles recebem antes de qualquer lead, então dá pra conferir a mensagem e
+            pausar se sair errada.
+          </p>
 
           <details className="colar-lista">
             <summary>ou colar a lista à mão</summary>
@@ -514,7 +522,9 @@ export default function DisparoNovo() {
           Cancelar
         </button>
         <button className="botao-primario" disabled={!podeSalvar} onClick={salvar}>
-          {salvando ? 'Salvando…' : `Criar disparo com ${contatos.length} contatos`}
+          {salvando
+            ? 'Salvando…'
+            : `Criar disparo com ${contatos.length} contatos + ${totalComTeste - contatos.length} de teste`}
         </button>
       </div>
     </>

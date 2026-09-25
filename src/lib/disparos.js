@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase'
+import { normalizaNumero } from './planilha'
 
 const PAGINA = 1000
 
@@ -46,6 +47,20 @@ export async function enviaMidia(arquivo) {
   return data.publicUrl
 }
 
+// Toda campanha começa por estes números: eles recebem antes de qualquer lead,
+// então dá tempo de pausar se a mensagem sair errada.
+export const CONTATOS_TESTE = [
+  { nome: 'Gabriel', numero: normalizaNumero('19983046552') },
+  { nome: 'Henrique', numero: normalizaNumero('19995190794') },
+]
+
+// Os de teste vão na frente da fila; se algum deles também estiver na lista
+// real, fica só a entrada de teste, para ninguém receber duas vezes.
+export function comContatosDeTeste(contatos) {
+  const numerosDeTeste = new Set(CONTATOS_TESTE.map((c) => c.numero))
+  return [...CONTATOS_TESTE, ...contatos.filter((c) => !numerosDeTeste.has(c.numero))]
+}
+
 export async function criaCampanha({ nome, mensagens, contatos, intervalo, travarIa = false }) {
   const { data: campanha, error } = await supabase
     .from('disparo_campanhas')
@@ -62,9 +77,11 @@ export async function criaCampanha({ nome, mensagens, contatos, intervalo, trava
     .single()
   if (error) throw new Error(error.message)
 
+  const fila = comContatosDeTeste(contatos)
+
   // o insert vai em blocos pra não estourar o limite de payload da API
-  for (let i = 0; i < contatos.length; i += 500) {
-    const bloco = contatos.slice(i, i + 500).map((c) => ({
+  for (let i = 0; i < fila.length; i += 500) {
+    const bloco = fila.slice(i, i + 500).map((c) => ({
       campanha_id: campanha.id,
       nome: c.nome,
       numero: c.numero,
