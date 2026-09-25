@@ -539,6 +539,9 @@ button.icone:hover { color: #ff6b6b; }
 .badge-contato.enviando { background: rgba(229,155,0,.15); border-color: #7a5400; color: #ffc247; }
 .badge-contato.respondeu { background: rgba(47,128,237,.15); border-color: #1d4b8f; color: #7db3ff; }
 .badge-contato.visualizou { background: rgba(155,109,255,.13); border-color: #4a3387; color: #b79bff; }
+.badge-contato.automatica { background: #1c1f22; border-color: var(--borda-escura); color: var(--muted); }
+.resposta-linha.automatica { opacity: .6; }
+.resposta-linha.automatica .resposta-texto { color: var(--muted); }
 
 .bloco-respostas { margin-bottom: 16px; }
 .bloco-respostas h2 { display: flex; align-items: center; gap: 8px; }

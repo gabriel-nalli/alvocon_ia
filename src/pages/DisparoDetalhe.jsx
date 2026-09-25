@@ -32,17 +32,24 @@ export default function DisparoDetalhe() {
   const contagem = useMemo(() => contaPorStatus(contatos), [contatos])
   const lista = useMemo(() => {
     if (filtro === 'todos') return contatos
-    if (filtro === 'responderam') return contatos.filter((c) => c.respondeu_em)
+    if (filtro === 'responderam')
+      return contatos.filter((c) => c.respondeu_em && !c.resposta_automatica)
     return contatos.filter((c) => c.status === filtro)
   }, [contatos, filtro])
 
   // quem respondeu vem primeiro e com o texto à mostra: é o que alguém precisa
   // atender, não só medir
+  // gente primeiro; a saudação automática fica no fim, marcada, para ninguém
+  // achar que a mensagem sumiu
   const respostas = useMemo(
     () =>
       contatos
         .filter((c) => c.respondeu_em)
-        .sort((a, b) => b.respondeu_em.localeCompare(a.respondeu_em)),
+        .sort((a, b) => {
+          if (a.resposta_automatica !== b.resposta_automatica)
+            return a.resposta_automatica ? 1 : -1
+          return b.respondeu_em.localeCompare(a.respondeu_em)
+        }),
     [contatos],
   )
 
@@ -159,6 +166,8 @@ export default function DisparoDetalhe() {
             {contagem.enviado
               ? `${Math.round((contagem.responderam / contagem.enviado) * 100)}% de quem recebeu`
               : 'ninguém recebeu ainda'}
+            {contagem.responderam_auto > 0 &&
+              ` · ${contagem.responderam_auto} automáticas fora da conta`}
           </span>
         </div>
         <div className="card kpi">
@@ -175,7 +184,7 @@ export default function DisparoDetalhe() {
       {respostas.length > 0 && (
         <section className="card bloco bloco-respostas">
           <h2>
-            <MessageSquare size={16} /> Responderam ({respostas.length})
+            <MessageSquare size={16} /> Responderam ({contagem.responderam})
           </h2>
           <p className="dica">
             Chegou no número do disparo. A Isabela não responde estas conversas enquanto a trava de
@@ -183,10 +192,15 @@ export default function DisparoDetalhe() {
           </p>
           <div className="lista-respostas">
             {respostas.map((c) => (
-              <div className="resposta-linha" key={c.id}>
+              <div
+                className={`resposta-linha ${c.resposta_automatica ? 'automatica' : ''}`}
+                key={c.id}
+              >
                 <div className="resposta-quem">
                   <strong>{c.nome || c.numero}</strong>
-                  <span className="txt-muted">{c.numero}</span>
+                  <span className="txt-muted">
+                    {c.resposta_automatica ? 'resposta automática' : c.numero}
+                  </span>
                 </div>
                 <div className="resposta-texto">{c.resposta || '—'}</div>
                 <a
@@ -259,7 +273,12 @@ export default function DisparoDetalhe() {
                       })
                     : ''}
                 </span>
-                {c.respondeu_em && <span className="badge-contato respondeu">Respondeu</span>}
+                {c.respondeu_em && !c.resposta_automatica && (
+                  <span className="badge-contato respondeu">Respondeu</span>
+                )}
+                {c.respondeu_em && c.resposta_automatica && (
+                  <span className="badge-contato automatica">Automática</span>
+                )}
                 {!c.respondeu_em && c.visualizado_em && (
                   <span className="badge-contato visualizou">Visualizou</span>
                 )}

@@ -337,15 +337,26 @@ export function useCampanha(campanhaId) {
 export function contaPorStatus(contatos) {
   const base = { pendente: 0, enviando: 0, enviado: 0, erro: 0 }
   let responderam = 0
+  let responderam_auto = 0
   let visualizados = 0
   let entregues = 0
   for (const c of contatos) {
     base[c.status] = (base[c.status] ?? 0) + 1
-    if (c.respondeu_em) responderam += 1
+    // saudação automática de WhatsApp Business não é resposta: quem separa as
+    // duas é a regra no banco, aqui só não misturamos a contagem
+    if (c.respondeu_em && c.resposta_automatica) responderam_auto += 1
+    else if (c.respondeu_em) responderam += 1
     if (c.visualizado_em) visualizados += 1
     if (c.entregue_em) entregues += 1
   }
-  return { ...base, responderam, visualizados, entregues, total: contatos.length }
+  return {
+    ...base,
+    responderam,
+    responderam_auto,
+    visualizados,
+    entregues,
+    total: contatos.length,
+  }
 }
 
 // Estimativa de quanto falta, usando o mesmo intervalo que o n8n sorteia.
