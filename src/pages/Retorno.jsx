@@ -33,7 +33,7 @@ function CelulaRoi({ roi }) {
 }
 
 export default function Retorno() {
-  const { semanas, vendasFora, carregando, erro } = useRetorno()
+  const { semanas, vendasFora, abertosFora, carregando, erro } = useRetorno()
   const [agrupamento, setAgrupamento] = useState('semana')
   const [salvando, setSalvando] = useState(null)
   const [falha, setFalha] = useState(null)
@@ -53,6 +53,13 @@ export default function Retorno() {
     [vendasFora],
   )
   const somaDe = (lista) => lista.reduce((t, v) => t + Number(v.valor_venda || 0), 0)
+  const somaOrcamento = (lista) =>
+    lista.reduce((t, v) => t + Number(v.valor_orcamento || 0), 0)
+
+  // O quadro de leads mostra todo orçamento em aberto; aqui só entrava o que
+  // veio do anúncio, e a diferença entre as duas telas não se explicava
+  // sozinha. Agora o card mostra o total e a ajuda abre a conta.
+  const abertoFora = somaOrcamento(abertosFora)
 
   // ROI sobre tudo que o Meta trouxe, inclusive a venda de lead que chegou
   // antes do período medido. A verba dessas semanas não pagou por esse lead —
@@ -145,8 +152,14 @@ export default function Retorno() {
         />
         <Kpi
           rotulo="Em aberto"
-          valor={dinheiro(total.em_aberto)}
-          ajuda="orçamento que ainda pode fechar"
+          valor={dinheiro(total.em_aberto + abertoFora)}
+          ajuda={
+            abertoFora > 0
+              ? `${dinheiro(total.em_aberto)} do anúncio + ${dinheiro(abertoFora)} de ${
+                  abertosFora.length === 1 ? 'lead que veio' : 'leads que vieram'
+                } por fora`
+              : 'orçamento que ainda pode fechar'
+          }
         />
       </section>
 
