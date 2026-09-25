@@ -54,6 +54,17 @@ export default function Retorno() {
   )
   const somaDe = (lista) => lista.reduce((t, v) => t + Number(v.valor_venda || 0), 0)
 
+  // ROI sobre tudo que o Meta trouxe, inclusive a venda de lead que chegou
+  // antes do período medido. A verba dessas semanas não pagou por esse lead —
+  // foi verba anterior, que não está no investido — então este número é
+  // otimista por construção. A tabela por semana continua com a atribuição
+  // certa, e é lá que se decide onde investir.
+  const faturadoTotal = total.faturamento + somaDe(antigas)
+  const roiTotal =
+    total.investimento > 0
+      ? ((faturadoTotal - total.investimento) / total.investimento) * 100
+      : null
+
   // semanas que custaram dinheiro e trouxeram quase nada
   const desperdicio = useMemo(
     () => semanas.filter((s) => Number(s.investimento) > 0 && s.leads < 5),
@@ -112,7 +123,7 @@ export default function Retorno() {
         />
         <Kpi
           rotulo="Faturado"
-          valor={dinheiro(total.faturamento + somaDe(antigas))}
+          valor={dinheiro(faturadoTotal)}
           ajuda={
             antigas.length > 0
               ? `${dinheiro(total.faturamento)} de leads do período + ${dinheiro(
@@ -120,17 +131,17 @@ export default function Retorno() {
                 )} de ${antigas.length === 1 ? 'lead que chegou' : 'leads que chegaram'} antes`
               : `${total.vendas} ${total.vendas === 1 ? 'venda' : 'vendas'} de leads do anúncio`
           }
-          tom={total.faturamento + somaDe(antigas) > 0 ? 'bom' : ''}
+          tom={faturadoTotal > 0 ? 'bom' : ''}
         />
         <Kpi
           rotulo="ROI"
-          valor={total.roi_pct == null ? '—' : `${numero(total.roi_pct, 0)}%`}
+          valor={roiTotal == null ? '—' : `${numero(roiTotal, 0)}%`}
           ajuda={
             antigas.length > 0
-              ? 'só os leads do período, sobre investido'
+              ? 'todo o faturado do Meta sobre investido'
               : 'faturado sobre investido'
           }
-          tom={total.roi_pct > 0 ? 'bom' : 'ruim'}
+          tom={roiTotal > 0 ? 'bom' : 'ruim'}
         />
         <Kpi
           rotulo="Em aberto"
