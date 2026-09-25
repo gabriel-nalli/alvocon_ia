@@ -433,6 +433,7 @@ button:not(:disabled) { cursor: pointer; }
 .campanha-numeros { display: flex; gap: 16px; font-size: 12.5px; color: #cfcfcf; flex-wrap: wrap; }
 .txt-muted { color: var(--muted); }
 .txt-erro { color: #ff6b6b; }
+.txt-bom { color: #46d6a8; }
 
 .barra-progresso {
   display: flex; height: 8px; border-radius: 99px; overflow: hidden;
@@ -536,6 +537,23 @@ button.icone:hover { color: #ff6b6b; }
 .badge-contato.enviado { background: rgba(24,184,134,.13); border-color: #14654b; color: #46d6a8; }
 .badge-contato.erro { background: rgba(227,27,35,.12); border-color: #5a171a; color: #ff8f8f; }
 .badge-contato.enviando { background: rgba(229,155,0,.15); border-color: #7a5400; color: #ffc247; }
+.badge-contato.respondeu { background: rgba(47,128,237,.15); border-color: #1d4b8f; color: #7db3ff; }
+.badge-contato.visualizou { background: rgba(155,109,255,.13); border-color: #4a3387; color: #b79bff; }
+
+.bloco-respostas { margin-bottom: 16px; }
+.bloco-respostas h2 { display: flex; align-items: center; gap: 8px; }
+.lista-respostas { display: grid; gap: 8px; }
+.resposta-linha {
+  display: grid; grid-template-columns: 180px 1fr auto auto; align-items: center; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--borda-escura); border-radius: 10px; background: #16181b;
+}
+.resposta-quem { display: grid; gap: 2px; font-size: 13px; min-width: 0; }
+.resposta-quem span { font-size: 11.5px; }
+.resposta-texto { font-size: 13.5px; color: #e4e4e4; line-height: 1.45; }
+.resposta-linha .botao-secundario { padding: 5px 12px; font-size: 12px; white-space: nowrap; }
+@media (max-width: 760px) {
+  .resposta-linha { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 1300px) {
   .grid-disparo { grid-template-columns: 1fr; }

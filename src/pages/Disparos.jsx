@@ -88,6 +88,9 @@ export default function Disparos() {
                       <strong>{p?.enviados ?? 0}</strong> de {p?.total ?? 0} entregues
                     </span>
                     {(p?.erros ?? 0) > 0 && <span className="txt-erro">{p.erros} falharam</span>}
+                    {(p?.responderam ?? 0) > 0 && (
+                      <span className="txt-bom">{p.responderam} responderam</span>
+                    )}
                     {rodando && pendentes > 0 && (
                       <span className="txt-muted">
                         faltam {pendentes} · {tempoRestante(c, pendentes)}

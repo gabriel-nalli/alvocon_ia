@@ -336,8 +336,16 @@ export function useCampanha(campanhaId) {
 
 export function contaPorStatus(contatos) {
   const base = { pendente: 0, enviando: 0, enviado: 0, erro: 0 }
-  for (const c of contatos) base[c.status] = (base[c.status] ?? 0) + 1
-  return { ...base, total: contatos.length }
+  let responderam = 0
+  let visualizados = 0
+  let entregues = 0
+  for (const c of contatos) {
+    base[c.status] = (base[c.status] ?? 0) + 1
+    if (c.respondeu_em) responderam += 1
+    if (c.visualizado_em) visualizados += 1
+    if (c.entregue_em) entregues += 1
+  }
+  return { ...base, responderam, visualizados, entregues, total: contatos.length }
 }
 
 // Estimativa de quanto falta, usando o mesmo intervalo que o n8n sorteia.

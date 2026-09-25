@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Play, Pause, Ban, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Ban, RefreshCw, MessageSquare } from 'lucide-react'
 import {
   useCampanha,
   contaPorStatus,
@@ -18,6 +18,7 @@ const FILTROS = [
   { id: 'pendente', rotulo: 'Na fila' },
   { id: 'enviado', rotulo: 'Entregues' },
   { id: 'erro', rotulo: 'Falharam' },
+  { id: 'responderam', rotulo: 'Responderam' },
 ]
 
 export default function DisparoDetalhe() {
@@ -29,9 +30,20 @@ export default function DisparoDetalhe() {
   const [falha, setFalha] = useState(null)
 
   const contagem = useMemo(() => contaPorStatus(contatos), [contatos])
-  const lista = useMemo(
-    () => (filtro === 'todos' ? contatos : contatos.filter((c) => c.status === filtro)),
-    [contatos, filtro],
+  const lista = useMemo(() => {
+    if (filtro === 'todos') return contatos
+    if (filtro === 'responderam') return contatos.filter((c) => c.respondeu_em)
+    return contatos.filter((c) => c.status === filtro)
+  }, [contatos, filtro])
+
+  // quem respondeu vem primeiro e com o texto à mostra: é o que alguém precisa
+  // atender, não só medir
+  const respostas = useMemo(
+    () =>
+      contatos
+        .filter((c) => c.respondeu_em)
+        .sort((a, b) => b.respondeu_em.localeCompare(a.respondeu_em)),
+    [contatos],
   )
 
   async function acao(fn, confirmacao) {
@@ -141,6 +153,15 @@ export default function DisparoDetalhe() {
           <span className="kpi-ajuda">número inválido ou fora do WhatsApp</span>
         </div>
         <div className="card kpi">
+          <span className="kpi-rotulo">Responderam</span>
+          <strong className="kpi-valor bom">{contagem.responderam}</strong>
+          <span className="kpi-ajuda">
+            {contagem.enviado
+              ? `${Math.round((contagem.responderam / contagem.enviado) * 100)}% de quem recebeu`
+              : 'ninguém recebeu ainda'}
+          </span>
+        </div>
+        <div className="card kpi">
           <span className="kpi-rotulo">Na fila</span>
           <strong className="kpi-valor">{contagem.pendente}</strong>
           <span className="kpi-ajuda">
@@ -150,6 +171,45 @@ export default function DisparoDetalhe() {
           </span>
         </div>
       </section>
+
+      {respostas.length > 0 && (
+        <section className="card bloco bloco-respostas">
+          <h2>
+            <MessageSquare size={16} /> Responderam ({respostas.length})
+          </h2>
+          <p className="dica">
+            Chegou no número do disparo. A Isabela não responde estas conversas enquanto a trava de
+            48h estiver de pé — quem responde é gente.
+          </p>
+          <div className="lista-respostas">
+            {respostas.map((c) => (
+              <div className="resposta-linha" key={c.id}>
+                <div className="resposta-quem">
+                  <strong>{c.nome || c.numero}</strong>
+                  <span className="txt-muted">{c.numero}</span>
+                </div>
+                <div className="resposta-texto">{c.resposta || '—'}</div>
+                <a
+                  className="botao-secundario"
+                  href={`https://wa.me/${c.numero}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir conversa
+                </a>
+                <span className="contato-quando">
+                  {new Date(c.respondeu_em).toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="grid-two">
         <div className="card bloco">
@@ -199,6 +259,10 @@ export default function DisparoDetalhe() {
                       })
                     : ''}
                 </span>
+                {c.respondeu_em && <span className="badge-contato respondeu">Respondeu</span>}
+                {!c.respondeu_em && c.visualizado_em && (
+                  <span className="badge-contato visualizou">Visualizou</span>
+                )}
                 {c.erro && <span className="contato-erro" title={c.erro}>{c.erro}</span>}
               </div>
             ))}
