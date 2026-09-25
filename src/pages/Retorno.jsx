@@ -112,14 +112,24 @@ export default function Retorno() {
         />
         <Kpi
           rotulo="Faturado"
-          valor={dinheiro(total.faturamento)}
-          ajuda={`${total.vendas} ${total.vendas === 1 ? 'venda' : 'vendas'} de leads do anúncio`}
-          tom={total.faturamento > 0 ? 'bom' : ''}
+          valor={dinheiro(total.faturamento + somaDe(antigas))}
+          ajuda={
+            antigas.length > 0
+              ? `${dinheiro(total.faturamento)} de leads do período + ${dinheiro(
+                  somaDe(antigas),
+                )} de ${antigas.length === 1 ? 'lead que chegou' : 'leads que chegaram'} antes`
+              : `${total.vendas} ${total.vendas === 1 ? 'venda' : 'vendas'} de leads do anúncio`
+          }
+          tom={total.faturamento + somaDe(antigas) > 0 ? 'bom' : ''}
         />
         <Kpi
           rotulo="ROI"
           valor={total.roi_pct == null ? '—' : `${numero(total.roi_pct, 0)}%`}
-          ajuda="faturado sobre investido"
+          ajuda={
+            antigas.length > 0
+              ? 'só os leads do período, sobre investido'
+              : 'faturado sobre investido'
+          }
           tom={total.roi_pct > 0 ? 'bom' : 'ruim'}
         />
         <Kpi
