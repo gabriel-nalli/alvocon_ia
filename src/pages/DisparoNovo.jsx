@@ -1,41 +1,180 @@
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, Plus, X, Image as IconeImagem, Loader2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Upload,
+  Plus,
+  X,
+  Image as IconeImagem,
+  Loader2,
+  Save,
+  Trash2,
+} from 'lucide-react'
 import { leContatos, leContatosColados } from '../lib/planilha'
-import { criaCampanha, enviaMidia } from '../lib/disparos'
+import {
+  criaCampanha,
+  enviaMidia,
+  listaModelos,
+  salvaModelo,
+  apagaModelo,
+  leRascunho,
+  gravaRascunho,
+  limpaRascunho,
+} from '../lib/disparos'
 
 const MENSAGENS_INICIAIS = [
   { tipo: 'texto', texto: '' },
   { tipo: 'texto', texto: '' },
 ]
 
+// O editor guarda texto e imagem; a campanha e os modelos guardam a ordem junto.
+function paraEditor(mensagens) {
+  const lista = (mensagens ?? []).map((m) => ({
+    tipo: m.midia_url ? 'imagem' : 'texto',
+    texto: m.texto ?? '',
+    midia_url: m.midia_url ?? null,
+  }))
+  return lista.length > 0 ? lista : MENSAGENS_INICIAIS
+}
+
+function paraSalvar(mensagens) {
+  return mensagens.map((m, i) => ({
+    ordem: i + 1,
+    tipo: m.midia_url ? 'imagem' : 'texto',
+    texto: m.texto.trim(),
+    midia_url: m.midia_url ?? null,
+  }))
+}
+
 export default function DisparoNovo() {
   const navigate = useNavigate()
   const arquivoRef = useRef(null)
-  // contatos que vieram do funil, já validados: aqui não há planilha pra ler
-  const doPipeline = useLocation().state ?? null
+  // pode chegar do funil (com contatos já validados) ou de uma duplicação
+  // (só com as mensagens); nos dois casos o que a pessoa acabou de escolher
+  // vale mais que o rascunho guardado
+  const entrada = useLocation().state ?? null
+  const doPipeline = entrada?.vindoDoPipeline ? entrada : null
+  const rascunho = useMemo(() => (entrada ? null : leRascunho()), [entrada])
 
   const [nome, setNome] = useState(
-    doPipeline?.nomeSugerido ? `${doPipeline.nomeSugerido} — ${new Date().toLocaleDateString('pt-BR')}` : '',
+    entrada?.nomeSugerido
+      ? `${entrada.nomeSugerido} — ${new Date().toLocaleDateString('pt-BR')}`
+      : rascunho?.nome ?? '',
   )
-  const [mensagens, setMensagens] = useState(MENSAGENS_INICIAIS)
-  const [intervaloMin, setIntervaloMin] = useState(120)
-  const [intervaloMax, setIntervaloMax] = useState(180)
-  const [entreMensagens, setEntreMensagens] = useState(5)
+  const [mensagens, setMensagens] = useState(
+    entrada?.mensagens
+      ? paraEditor(entrada.mensagens)
+      : rascunho?.mensagens
+        ? paraEditor(rascunho.mensagens)
+        : MENSAGENS_INICIAIS,
+  )
+  const [intervaloMin, setIntervaloMin] = useState(rascunho?.intervaloMin ?? 120)
+  const [intervaloMax, setIntervaloMax] = useState(rascunho?.intervaloMax ?? 180)
+  const [entreMensagens, setEntreMensagens] = useState(rascunho?.entreMensagens ?? 5)
 
-  const [contatos, setContatos] = useState(doPipeline?.contatos ?? [])
+  const [contatos, setContatos] = useState(doPipeline?.contatos ?? rascunho?.contatos ?? [])
   const [rejeitados, setRejeitados] = useState([])
-  const [nomeArquivo, setNomeArquivo] = useState('')
-  const [colado, setColado] = useState('')
+  const [nomeArquivo, setNomeArquivo] = useState(rascunho?.nomeArquivo ?? '')
+  const [colado, setColado] = useState(rascunho?.colado ?? '')
+  const [restaurado, setRestaurado] = useState(Boolean(rascunho))
+
+  const [modelos, setModelos] = useState([])
+  const [modeloEscolhido, setModeloEscolhido] = useState('')
 
   const [erro, setErro] = useState(null)
   const [salvando, setSalvando] = useState(false)
   const [enviandoMidia, setEnviandoMidia] = useState(null)
 
+  useEffect(() => {
+    listaModelos()
+      .then(setModelos)
+      .catch((e) => setErro(`Não consegui carregar os modelos: ${e.message}`))
+  }, [])
+
+  // rascunho automático: só grava quando já existe algo pra perder
+  useEffect(() => {
+    const temConteudo =
+      nome.trim() || contatos.length > 0 || mensagens.some((m) => m.texto.trim() || m.midia_url)
+    const id = setTimeout(() => {
+      if (!temConteudo) return limpaRascunho()
+      gravaRascunho({
+        nome,
+        mensagens,
+        contatos,
+        nomeArquivo,
+        colado,
+        intervaloMin,
+        intervaloMax,
+        entreMensagens,
+      })
+    }, 400)
+    return () => clearTimeout(id)
+  }, [
+    nome,
+    mensagens,
+    contatos,
+    nomeArquivo,
+    colado,
+    intervaloMin,
+    intervaloMax,
+    entreMensagens,
+  ])
+
+  function descartaRascunho() {
+    limpaRascunho()
+    setNome('')
+    setMensagens(MENSAGENS_INICIAIS)
+    setContatos([])
+    setRejeitados([])
+    setNomeArquivo('')
+    setColado('')
+    setIntervaloMin(120)
+    setIntervaloMax(180)
+    setEntreMensagens(5)
+    setRestaurado(false)
+  }
+
   function atualizaMensagem(indice, campo, valor) {
     setMensagens((atual) =>
       atual.map((m, i) => (i === indice ? { ...m, [campo]: valor } : m)),
     )
+  }
+
+  function carregaModelo(id) {
+    setModeloEscolhido(id)
+    if (!id) return
+    const modelo = modelos.find((m) => m.id === id)
+    if (modelo) setMensagens(paraEditor(modelo.mensagens))
+  }
+
+  async function salvarComoModelo() {
+    const sugestao = nome.trim() || 'Modelo de mensagem'
+    const nomeModelo = window.prompt('Nome do modelo', sugestao)
+    if (!nomeModelo?.trim()) return
+    setErro(null)
+    try {
+      const novo = await salvaModelo({
+        nome: nomeModelo.trim(),
+        mensagens: paraSalvar(mensagensValidas),
+      })
+      setModelos((atual) => [novo, ...atual])
+      setModeloEscolhido(novo.id)
+    } catch (e) {
+      setErro(`Não consegui salvar o modelo: ${e.message}`)
+    }
+  }
+
+  async function apagarModelo() {
+    const modelo = modelos.find((m) => m.id === modeloEscolhido)
+    if (!modelo || !window.confirm(`Apagar o modelo "${modelo.nome}"?`)) return
+    setErro(null)
+    try {
+      await apagaModelo(modelo.id)
+      setModelos((atual) => atual.filter((m) => m.id !== modelo.id))
+      setModeloEscolhido('')
+    } catch (e) {
+      setErro(`Não consegui apagar o modelo: ${e.message}`)
+    }
   }
 
   async function escolheArquivo(evento) {
@@ -101,12 +240,7 @@ export default function DisparoNovo() {
     try {
       const campanha = await criaCampanha({
         nome: nome.trim(),
-        mensagens: mensagensValidas.map((m, i) => ({
-          ordem: i + 1,
-          tipo: m.midia_url ? 'imagem' : 'texto',
-          texto: m.texto.trim(),
-          midia_url: m.midia_url ?? null,
-        })),
+        mensagens: paraSalvar(mensagensValidas),
         contatos,
         travarIa: Boolean(doPipeline?.travarIa),
         intervalo: {
@@ -115,6 +249,8 @@ export default function DisparoNovo() {
           entreMensagens: Number(entreMensagens),
         },
       })
+      // a campanha existe: o rascunho cumpriu o papel dele
+      limpaRascunho()
       navigate(`/disparos/${campanha.id}`)
     } catch (e) {
       setErro(e.message)
@@ -135,6 +271,20 @@ export default function DisparoNovo() {
 
       {erro && <div className="aviso-erro">{erro}</div>}
 
+      {restaurado && (
+        <div className="aviso-neutro">
+          <span>
+            <strong>Rascunho restaurado.</strong> É o que você tinha escrito da última vez nesta
+            tela.
+            {rascunho?.contatosOmitidos > 0 &&
+              ` A lista de ${rascunho.contatosOmitidos} contatos era grande demais para guardar — escolha os contatos de novo.`}
+          </span>
+          <button className="botao-secundario" onClick={descartaRascunho}>
+            Começar do zero
+          </button>
+        </div>
+      )}
+
       <div className="grid-disparo">
         <div className="card bloco">
           <h2>1 · Nome</h2>
@@ -153,6 +303,35 @@ export default function DisparoNovo() {
             Enviadas nesta ordem, uma após a outra, com {entreMensagens}s entre elas. Use{' '}
             <code>{'{{nome}}'}</code> para chamar a pessoa pelo nome.
           </p>
+
+          <div className="linha-modelos">
+            <select
+              className="campo"
+              value={modeloEscolhido}
+              onChange={(e) => carregaModelo(e.target.value)}
+            >
+              <option value="">
+                {modelos.length ? 'Carregar modelo…' : 'Nenhum modelo salvo ainda'}
+              </option>
+              {modelos.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nome}
+                </option>
+              ))}
+            </select>
+            {modeloEscolhido && (
+              <button className="icone" title="Apagar este modelo" onClick={apagarModelo}>
+                <Trash2 size={15} />
+              </button>
+            )}
+            <button
+              className="botao-secundario"
+              disabled={mensagensValidas.length === 0}
+              onClick={salvarComoModelo}
+            >
+              <Save size={15} /> Salvar como modelo
+            </button>
+          </div>
 
           {mensagens.map((m, i) => (
             <div className="mensagem-editor" key={i}>

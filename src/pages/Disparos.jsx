@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Plus, Play, Pause, Ban, Trash2 } from 'lucide-react'
+import { Plus, Play, Pause, Ban, Trash2, Copy } from 'lucide-react'
 import {
   useCampanhas,
   ROTULO_STATUS,
@@ -100,6 +100,16 @@ export default function Disparos() {
                 </button>
 
                 <div className="campanha-acoes">
+                  <button
+                    onClick={() =>
+                      navigate('/disparos/novo', {
+                        state: { mensagens: c.mensagens, nomeSugerido: c.nome },
+                      })
+                    }
+                    title="Abrir um disparo novo com estas mensagens"
+                  >
+                    <Copy size={16} /> Duplicar
+                  </button>
                   {(c.status === 'rascunho' || c.status === 'pausado') && (
                     <button
                       disabled={ocupado === c.id}

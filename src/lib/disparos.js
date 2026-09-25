@@ -81,6 +81,80 @@ export async function criaCampanha({ nome, mensagens, contatos, intervalo, trava
   return campanha
 }
 
+// ---------- modelos de mensagem ----------
+
+// Sequências salvas de propósito para reusar em outros disparos. Só o texto e
+// a imagem: contatos e ritmo mudam a cada campanha.
+export async function listaModelos() {
+  const { data, error } = await supabase
+    .from('disparo_modelos')
+    .select('*')
+    .order('criado_em', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+export async function salvaModelo({ nome, mensagens }) {
+  const { data, error } = await supabase
+    .from('disparo_modelos')
+    .insert({ nome, mensagens })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function apagaModelo(id) {
+  const { error } = await supabase.from('disparo_modelos').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// ---------- rascunho da tela ----------
+
+// O que está sendo escrito agora, guardado no navegador: se a aba fechar ou
+// alguém clicar fora sem querer, o texto volta. Nunca vai pro banco — é
+// trabalho em andamento, não campanha.
+const CHAVE_RASCUNHO = 'painel-disparo-rascunho'
+const MAX_CONTATOS_RASCUNHO = 1000
+
+export function leRascunho() {
+  try {
+    const cru = localStorage.getItem(CHAVE_RASCUNHO)
+    return cru ? JSON.parse(cru) : null
+  } catch {
+    return null
+  }
+}
+
+export function gravaRascunho(rascunho) {
+  try {
+    // lista grande não cabe no localStorage; nesse caso guarda só as mensagens
+    // e avisa na tela que os contatos precisam ser escolhidos de novo
+    const contatos = rascunho.contatos ?? []
+    const cabe = contatos.length <= MAX_CONTATOS_RASCUNHO
+    localStorage.setItem(
+      CHAVE_RASCUNHO,
+      JSON.stringify({
+        ...rascunho,
+        contatos: cabe ? contatos : [],
+        contatosOmitidos: cabe ? 0 : contatos.length,
+        salvo_em: new Date().toISOString(),
+      }),
+    )
+  } catch {
+    // navegador sem espaço ou em modo privado: o rascunho é conveniência, não
+    // pode derrubar a tela
+  }
+}
+
+export function limpaRascunho() {
+  try {
+    localStorage.removeItem(CHAVE_RASCUNHO)
+  } catch {
+    // idem
+  }
+}
+
 // ---------- controle ----------
 
 async function acordaN8n(campanhaId) {
