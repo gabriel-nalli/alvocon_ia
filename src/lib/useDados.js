@@ -64,7 +64,7 @@ export function useDados() {
       timer.current = setTimeout(carrega, 400)
     }
     const canal = supabase
-      .channel('painel-isabela')
+      .channel('painel-alvocon')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'isabela_leads' }, agenda)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'isabela_mensagens' }, agenda)
       .subscribe()

@@ -1,4 +1,4 @@
-# Painel Isabela — Alvocon
+# Painel Alvocon
 
 Painel em tempo real da SDR IA (Isabela) no WhatsApp: funil de qualificação,
 métricas por perfil de cliente, eventos do fluxo e visualizador de conversas.
